@@ -225,7 +225,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       className="py-3 px-4 rounded-2xl bg-rose-50 border-2 border-rose-300 text-xs font-cute font-black text-rose-600 hover:bg-rose-100 hover:border-rose-500 flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <Trash2 size={14} />
-                      <span>🧹 一鍵清空所有測試資料 (清空歸零)</span>
+                      <span>🧹 一鍵清空所有測試資料 (歸零)</span>
                     </button>
                   </div>
                 </div>
@@ -251,10 +251,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <AlertTriangle size={28} />
                   </div>
                   <h3 className="font-heading text-xl font-black text-brown-text mb-2">
-                    確認清空所有賓客資料？
+                    確認清空所有投票紀錄？
                   </h3>
                   <p className="text-xs text-rose-600 font-cute font-bold leading-relaxed mb-6">
-                    確定要清空所有賓客的投票資料嗎？活動開始前請執行此動作，此操作無法復原！
+                    確定要清空所有賓客的投票紀錄嗎？此動作無法復原！
                   </p>
 
                   <div className="flex gap-3">
