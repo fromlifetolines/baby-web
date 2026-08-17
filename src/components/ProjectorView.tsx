@@ -195,7 +195,7 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({ guesses, onOpenAdm
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-heading text-lg sm:text-xl font-black text-brown-text flex items-center gap-2">
                 <Trophy size={20} className="text-pastel-coral" />
-                <span>{guesses.length === 0 ? '人氣榜首（虛位以待）' : '人氣榜首前三名 (TOP 3)'}</span>
+                <span>{guesses.length === 0 ? '人氣預測榜' : '人氣榜首前三名 (TOP 3)'}</span>
               </h3>
               <span className="text-xs font-cute text-brown-muted font-bold">
                 {guesses.length === 0 ? '等待首投' : '即時票選領先'}
@@ -210,10 +210,10 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({ guesses, onOpenAdm
               >
                 <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white text-pastel-coral text-xs font-heading font-black shadow-sm">
                   <Sparkles size={14} className="text-pastel-coral" />
-                  <span>🏆 人氣榜首（虛位以待）</span>
+                  <span>🏆 人氣預測榜</span>
                 </div>
                 <h4 className="font-heading text-xl sm:text-2xl font-black text-brown-text mt-1">
-                  ✨ 等待親友投下第一個預測... ✨
+                  ✨ 歡迎親友投下第一個預測！ ✨
                 </h4>
                 <p className="text-xs sm:text-sm font-cute font-bold text-pastel-rose">
                   快掃描右側 QR Code，投下第一票成為首位預言家！
