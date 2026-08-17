@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+        <defs><filter id="glowIng"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#facc15" flood-opacity="0.8"/></filter></defs>
+        <!-- Gold Ingot -->
+        <path d="M20 44 C20 34 32 30 50 30 C68 30 80 34 80 44 C80 50 74 68 50 68 C26 68 20 50 20 44 Z" fill="#eab308" stroke="#6FFF00" stroke-width="2" filter="url(#glowIng)"/>
+        <!-- Inner Center Oval -->
+        <ellipse cx="50" cy="42" rx="16" ry="8" fill="#fef08a" stroke="#ca8a04" stroke-width="1.5"/>
+        <ellipse cx="50" cy="42" rx="8" ry="4" fill="#ffffff" opacity="0.6"/>
+    </svg>

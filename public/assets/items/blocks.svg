@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+        <defs><filter id="glowBlk"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#6FFF00" flood-opacity="0.6"/></filter></defs>
+        <!-- Triangle Block -->
+        <polygon points="50,18 30,44 70,44" fill="#f59e0b" stroke="#6FFF00" stroke-width="2" filter="url(#glowBlk)"/>
+        <!-- Square Blocks -->
+        <rect x="22" y="48" width="24" height="24" rx="3" fill="#3b82f6" stroke="#6FFF00" stroke-width="2"/>
+        <rect x="54" y="48" width="24" height="24" rx="3" fill="#ef4444" stroke="#6FFF00" stroke-width="2"/>
+        <!-- Cylinder/Arch Block -->
+        <rect x="36" y="74" width="28" height="12" rx="4" fill="#10b981" stroke="#6FFF00" stroke-width="1.5"/>
+    </svg>

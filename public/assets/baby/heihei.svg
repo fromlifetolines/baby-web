@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+        <defs>
+            <radialGradient id="face2" cx="50%" cy="45%" r="50%">
+                <stop offset="0%" stop-color="#ffecd2"/>
+                <stop offset="100%" stop-color="#fcb69f"/>
+            </radialGradient>
+            <filter id="glowHei"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#f43f5e" flood-opacity="0.6"/></filter>
+        </defs>
+        <!-- Pink Headband & Bow -->
+        <rect x="22" y="36" width="76" height="14" rx="7" fill="#f472b6" stroke="#ec4899" stroke-width="2"/>
+        <path d="M50 28 Q60 38 70 28 Q78 20 60 22 Q42 20 50 28 Z" fill="#ec4899"/>
+        <!-- Baby Head -->
+        <circle cx="60" cy="65" r="38" fill="url(#face2)"/>
+        <!-- Happy Eyes -->
+        <path d="M44 58 Q50 52 54 58" stroke="#1e293b" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <path d="M66 58 Q70 52 76 58" stroke="#1e293b" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <!-- Blush -->
+        <circle cx="40" cy="68" r="6" fill="#fb7185" opacity="0.5"/>
+        <circle cx="80" cy="68" r="6" fill="#fb7185" opacity="0.5"/>
+        <!-- Cheeky Tongue -->
+        <path d="M52 70 Q60 74 68 70 Q60 84 52 70 Z" fill="#f43f5e" stroke="#be123c" stroke-width="1.5"/>
+        <text x="60" y="112" fill="#6FFF00" font-size="14" font-family="'Anton', sans-serif" font-weight="bold" text-anchor="middle">嘿嘿 😜</text>
+    </svg>

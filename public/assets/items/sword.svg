@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+        <defs><filter id="glowSw"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#6FFF00" flood-opacity="0.6"/></filter></defs>
+        <!-- Blade -->
+        <path d="M74 20 L78 24 L38 64 L34 60 Z" fill="#e2e8f0" stroke="#6FFF00" stroke-width="1.8" filter="url(#glowSw)"/>
+        <path d="M78 24 L80 18 L74 20 Z" fill="#6FFF00"/>
+        <!-- Guard -->
+        <path d="M28 54 L44 70" stroke="#d97706" stroke-width="6" stroke-linecap="round"/>
+        <!-- Grip -->
+        <line x1="32" y1="66" x2="20" y2="78" stroke="#78350f" stroke-width="5" stroke-linecap="round"/>
+        <!-- Pommel & Tassel -->
+        <circle cx="18" cy="80" r="3.5" fill="#f59e0b" stroke="#6FFF00" stroke-width="1"/>
+        <path d="M18 83 Q16 88 14 93 M18 83 Q20 88 22 93" stroke="#eab308" stroke-width="2"/>
+    </svg>

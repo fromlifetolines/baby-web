@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+        <defs>
+            <filter id="glowCam"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#6FFF00" flood-opacity="0.6"/></filter>
+        </defs>
+        <!-- Wooden Camera Body -->
+        <rect x="18" y="32" width="64" height="44" rx="8" fill="#c68a4c" stroke="#6FFF00" stroke-width="2" filter="url(#glowCam)"/>
+        <rect x="30" y="24" width="20" height="8" rx="3" fill="#8b5a2b" stroke="#6FFF00" stroke-width="1.5"/>
+        <circle cx="70" cy="26" r="4" fill="#EFF4FF" stroke="#6FFF00" stroke-width="1.5"/>
+        <!-- Lens -->
+        <circle cx="50" cy="54" r="18" fill="#8b5a2b" stroke="#6FFF00" stroke-width="2"/>
+        <circle cx="50" cy="54" r="13" fill="#010828" stroke="#6FFF00" stroke-width="1"/>
+        <circle cx="50" cy="54" r="8" fill="#1e3a8a" opacity="0.7"/>
+        <circle cx="46" cy="50" r="3" fill="#EFF4FF" opacity="0.8"/>
+    </svg>
