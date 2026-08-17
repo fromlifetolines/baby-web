@@ -77,6 +77,24 @@ export const App: React.FC = () => {
     }
   }, []);
 
+  // Helper to force purge local guest session
+  const purgeClientSession = () => {
+    try {
+      localStorage.removeItem('xingwei_current_user_v2');
+      localStorage.removeItem('xingwei_user_selections_v2');
+      localStorage.removeItem('hasVoted');
+      localStorage.removeItem('guestName');
+      localStorage.removeItem('xingwei_user_selections_live');
+    } catch (e) {
+      console.error(e);
+    }
+    setUserName('');
+    setUserSelections([]);
+    if (appMode === 'guest') {
+      setView('portal');
+    }
+  };
+
   // Restore guest state on reload
   useEffect(() => {
     if (appMode === 'guest') {
@@ -84,21 +102,42 @@ export const App: React.FC = () => {
         setView('dashboard');
       } else if (userName) {
         setView('matrix');
+      } else {
+        setView('portal');
       }
     }
   }, [appMode]);
 
-  // Subscribe to real-time guesses & gameState
+  // Subscribe to real-time guesses & gameState with auto-purge on reset
   useEffect(() => {
     const unsubGuesses = subscribeToGuesses((updatedGuesses) => {
       setGuesses(updatedGuesses);
+      // Auto-purge if database was wiped clean while client was in session
+      if (updatedGuesses.length === 0 && (userName || userSelections.length > 0)) {
+        purgeClientSession();
+      }
     });
 
     const unsubGameState = subscribeToGameState((updatedGameState) => {
       setGameState(updatedGameState);
+
+      // Reactive Reset Handling via lastResetTimestamp
+      if (updatedGameState.lastResetTimestamp) {
+        const localAck = Number(localStorage.getItem('xingwei_last_reset_ack') || 0);
+        if (updatedGameState.lastResetTimestamp > localAck) {
+          localStorage.setItem('xingwei_last_reset_ack', String(updatedGameState.lastResetTimestamp));
+          purgeClientSession();
+          return;
+        }
+      }
+
       // CRITICAL SYNC: Instantly transition to Grand Reveal when revealed!
       if (updatedGameState.isRevealed) {
         setView('reveal');
+      } else if (view === 'reveal') {
+        if (appMode === 'guest') {
+          setView(userName ? (userSelections.length === 3 ? 'dashboard' : 'matrix') : 'portal');
+        }
       }
     });
 
@@ -106,7 +145,7 @@ export const App: React.FC = () => {
       if (unsubGuesses) unsubGuesses();
       if (unsubGameState) unsubGameState();
     };
-  }, []);
+  }, [userName, userSelections, appMode, view]);
 
   // Handler: Enter Portal
   const handleEnterPortal = (name: string) => {
@@ -141,25 +180,21 @@ export const App: React.FC = () => {
     });
   };
 
-  // Handler: Admin Reset Game
+  // Handler: Admin Reset Game State Only
   const handleResetGame = async () => {
     await updateGameStateInDb({
       isRevealed: false,
     });
-    await resetAllGuessesInDb();
     if (appMode === 'guest') {
       setView(userName ? (userSelections.length === 3 ? 'dashboard' : 'matrix') : 'portal');
     }
   };
 
-  // Handler: Admin Reset All Data (Clean Slate)
+  // Handler: Admin Reset All Data (Clean Slate & Global Purge)
   const handleResetAllData = async () => {
     await resetAllGuessesInDb();
     setGuesses([]);
-    setUserSelections([]);
-    if (appMode === 'guest') {
-      setView(userName ? 'matrix' : 'portal');
-    }
+    purgeClientSession();
   };
 
   return (

@@ -14,6 +14,7 @@ export type GameState = {
   isRevealed: boolean;
   actualItems: string[]; // 3 actual picked item IDs
   revealedAt?: number;
+  lastResetTimestamp?: number;
 };
 
 export type WinnerScore = {

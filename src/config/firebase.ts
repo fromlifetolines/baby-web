@@ -194,8 +194,9 @@ export const updateGameStateInDb = async (state: Partial<GameState>): Promise<vo
   }
 };
 
-// API: Reset and Clean Slate - Batch delete all guesses & reset state
+// API: Reset and Clean Slate - Batch delete all guesses & reset state with reset signal
 export const resetAllGuessesInDb = async (): Promise<void> => {
+  const resetTime = Date.now();
   try {
     const snap = await getDocs(collection(db, 'guesses'));
     if (!snap.empty) {
@@ -209,20 +210,39 @@ export const resetAllGuessesInDb = async (): Promise<void> => {
     await setDoc(doc(db, 'gameState', 'current'), {
       isRevealed: false,
       actualItems: ['item_09', 'item_16', 'item_01'],
+      lastResetTimestamp: resetTime,
     });
   } catch (e) {
     console.error("Firestore batch delete error:", e);
   }
 
-  localStorage.setItem(LOCAL_STORAGE_KEY_GUESSES, JSON.stringify([]));
-  localStorage.setItem(LOCAL_STORAGE_KEY_GAME, JSON.stringify({
-    isRevealed: false,
-    actualItems: ['item_09', 'item_16', 'item_01'],
-  }));
-  localStorage.removeItem('xingwei_user_selections_live');
+  // Purge all guest session and local keys
+  try {
+    localStorage.removeItem('xingwei_current_user_v2');
+    localStorage.removeItem('xingwei_user_selections_v2');
+    localStorage.removeItem('hasVoted');
+    localStorage.removeItem('guestName');
+    localStorage.removeItem('xingwei_user_selections_live');
+    localStorage.setItem(LOCAL_STORAGE_KEY_GUESSES, JSON.stringify([]));
+    localStorage.setItem(LOCAL_STORAGE_KEY_GAME, JSON.stringify({
+      isRevealed: false,
+      actualItems: ['item_09', 'item_16', 'item_01'],
+      lastResetTimestamp: resetTime,
+    }));
+    localStorage.setItem('xingwei_last_reset_ack', String(resetTime));
+  } catch (e) {
+    console.error("LocalStorage clear error:", e);
+  }
 
   if (broadcast) {
-    broadcast.postMessage({ type: 'RESET_GUESSES', all: [] });
-    broadcast.postMessage({ type: 'GAME_STATE_UPDATE', payload: { isRevealed: false, actualItems: ['item_09', 'item_16', 'item_01'] } });
+    broadcast.postMessage({ type: 'RESET_GUESSES', all: [], lastResetTimestamp: resetTime });
+    broadcast.postMessage({ 
+      type: 'GAME_STATE_UPDATE', 
+      payload: { 
+        isRevealed: false, 
+        actualItems: ['item_09', 'item_16', 'item_01'],
+        lastResetTimestamp: resetTime
+      } 
+    });
   }
 };
