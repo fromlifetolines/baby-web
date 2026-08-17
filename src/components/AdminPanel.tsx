@@ -10,8 +10,7 @@ import {
   Check, 
   Lock, 
   ShieldCheck,
-  Trash2,
-  AlertTriangle
+  Trash2
 } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -39,7 +38,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [password, setPassword] = useState('');
   const [isUnlocked, setIsUnlocked] = useState(initialUnlocked);
   const [errorMsg, setErrorMsg] = useState('');
-  const [showConfirmResetModal, setShowConfirmResetModal] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
   const handleToggleItem = (id: string) => {
@@ -73,15 +71,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     onClose();
   };
 
+  // Native window.confirm to guarantee rendering above EVERYTHING without z-index conflicts
   const handleExecuteResetAllData = async () => {
+    const isConfirmed = window.confirm(
+      "🚨 警告：確定要清空所有賓客的投票紀錄嗎？\n\n此動作無法復原！活動正式開始前請點擊「確定」執行歸零。"
+    );
+    
+    if (!isConfirmed) return;
+
     try {
       setIsResetting(true);
       await onResetAllData();
       setIsResetting(false);
-      setShowConfirmResetModal(false);
       onClose();
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error("Reset failed: ", error);
+      alert("歸零失敗，請檢查網路連線。");
       setIsResetting(false);
     }
   };
@@ -146,7 +151,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                 <button
                   type="submit"
-                  className="w-full py-4 rounded-2xl pastel-btn-primary font-heading text-base font-black tracking-wider shadow-md"
+                  className="w-full py-4 rounded-2xl pastel-btn-primary font-heading text-base font-black tracking-wider shadow-md cursor-pointer"
                 >
                   解鎖開獎控制台 (UNLOCK)
                 </button>
@@ -213,70 +218,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           onClose();
                         }
                       }}
-                      className="py-3 px-4 rounded-2xl bg-cream-100 border border-blush-200 text-xs font-cute font-bold text-brown-muted hover:text-brown-text hover:border-rose-400 flex items-center justify-center gap-2 shadow-sm"
+                      className="py-3 px-4 rounded-2xl bg-cream-100 border border-blush-200 text-xs font-cute font-bold text-brown-muted hover:text-brown-text hover:border-rose-400 flex items-center justify-center gap-2 shadow-sm cursor-pointer"
                     >
                       <RotateCcw size={14} />
                       <span>重設開獎狀態 (RESET STATE)</span>
                     </button>
 
-                    {/* Prominent Danger Button: Reset All Data */}
+                    {/* Prominent Danger Button: Reset All Data with window.confirm */}
                     <button
-                      onClick={() => setShowConfirmResetModal(true)}
-                      className="py-3 px-4 rounded-2xl bg-rose-50 border-2 border-rose-300 text-xs font-cute font-black text-rose-600 hover:bg-rose-100 hover:border-rose-500 flex items-center justify-center gap-1.5 shadow-sm"
+                      onClick={handleExecuteResetAllData}
+                      disabled={isResetting}
+                      className="py-3 px-4 rounded-2xl bg-rose-50 border-2 border-rose-300 text-xs font-cute font-black text-rose-600 hover:bg-rose-100 hover:border-rose-500 flex items-center justify-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
                     >
                       <Trash2 size={14} />
-                      <span>🧹 一鍵清空所有測試資料 (歸零)</span>
+                      <span>{isResetting ? '清空中...' : '🧹 一鍵清空所有測試資料 (歸零)'}</span>
                     </button>
                   </div>
                 </div>
               </div>
             )}
           </motion.div>
-
-          {/* Confirm Reset Data Modal */}
-          <AnimatePresence>
-            {showConfirmResetModal && (
-              <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
-                <div 
-                  onClick={() => setShowConfirmResetModal(false)}
-                  className="fixed inset-0 bg-[#3D281D]/75 backdrop-blur-sm"
-                />
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.9, opacity: 0 }}
-                  className="liquid-glass relative w-full max-w-md p-6 rounded-[32px] border-2 border-rose-400 shadow-2xl z-10 bg-white text-center"
-                >
-                  <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center">
-                    <AlertTriangle size={28} />
-                  </div>
-                  <h3 className="font-heading text-xl font-black text-brown-text mb-2">
-                    確認清空所有投票紀錄？
-                  </h3>
-                  <p className="text-xs text-rose-600 font-cute font-bold leading-relaxed mb-6">
-                    確定要清空所有賓客的投票紀錄嗎？此動作無法復原！
-                  </p>
-
-                  <div className="flex gap-3">
-                    <button
-                      onClick={handleExecuteResetAllData}
-                      disabled={isResetting}
-                      className="flex-1 py-3 px-4 rounded-2xl bg-rose-600 text-white font-heading font-black text-sm shadow-md hover:bg-rose-700 active:scale-95 disabled:opacity-50"
-                    >
-                      {isResetting ? '清空中...' : '確定清空歸零'}
-                    </button>
-                    <button
-                      onClick={() => setShowConfirmResetModal(false)}
-                      disabled={isResetting}
-                      className="px-5 py-3 rounded-2xl bg-cream-100 border border-blush-200 text-sm font-bold text-brown-text hover:bg-blush-100"
-                    >
-                      取消
-                    </button>
-                  </div>
-                </motion.div>
-              </div>
-            )}
-          </AnimatePresence>
         </div>
       )}
     </AnimatePresence>
