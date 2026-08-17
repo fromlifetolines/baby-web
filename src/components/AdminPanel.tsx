@@ -3,14 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ZHUAZHOU_ITEMS } from '../config/itemsData';
 import { GameState } from '../types';
 import { 
-  ShieldAlert, 
   X, 
   Sparkles, 
   RotateCcw, 
-  Flame, 
+  PartyPopper, 
   Check, 
   Lock, 
-  Eye 
+  ShieldCheck 
 } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -19,6 +18,7 @@ interface AdminPanelProps {
   gameState: GameState;
   onTriggerReveal: (actualItems: string[]) => void;
   onResetGame: () => void;
+  initialUnlocked?: boolean;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
@@ -27,12 +27,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   gameState,
   onTriggerReveal,
   onResetGame,
+  initialUnlocked = false,
 }) => {
   const [selectedActualIds, setSelectedActualIds] = useState<string[]>(
     gameState.actualItems?.length === 3 ? gameState.actualItems : ['item_09', 'item_16', 'item_01']
   );
   const [password, setPassword] = useState('');
-  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(initialUnlocked);
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleToggleItem = (id: string) => {
@@ -40,7 +41,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       setSelectedActualIds(selectedActualIds.filter((it) => it !== id));
     } else {
       if (selectedActualIds.length >= 3) {
-        // replace the first or show alert
         setSelectedActualIds([...selectedActualIds.slice(1), id]);
         return;
       }
@@ -50,18 +50,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simple party admin passcode (or leave blank to proceed)
-    if (password === '8888' || password === '1st' || password === 'xingwei' || password === '') {
+    if (password === '0819') {
       setIsUnlocked(true);
       setErrorMsg('');
     } else {
-      setErrorMsg('密碼錯誤 (預設密碼可直接按解鎖或輸入 8888)');
+      setErrorMsg('密碼錯誤！請輸入主持人管理密碼 0819');
     }
   };
 
   const handleTrigger = () => {
     if (selectedActualIds.length !== 3) {
-      setErrorMsg('請勾選星維實際抓取的精確 3 個品項！');
+      setErrorMsg('請勾選星唯實際抓取的 3 個志業品項！');
       return;
     }
     onTriggerReveal(selectedActualIds);
@@ -77,60 +76,61 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-[#010828]/85 backdrop-blur-md"
+            className="fixed inset-0 bg-[#3D281D]/60 backdrop-blur-md"
           />
 
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="liquid-glass relative w-full max-w-2xl p-6 sm:p-8 rounded-[28px] border border-neon/40 shadow-2xl z-10 max-h-[90vh] overflow-y-auto"
+            className="liquid-glass relative w-full max-w-2xl p-6 sm:p-8 rounded-[36px] border-2 border-pastel-coral shadow-2xl z-10 max-h-[90vh] overflow-y-auto bg-white/95"
           >
             <button
               onClick={onClose}
-              className="absolute top-5 right-5 p-2 rounded-full text-cream-muted hover:text-white hover:bg-white/10"
+              className="absolute top-5 right-5 p-2.5 rounded-full text-brown-muted hover:text-brown-text hover:bg-blush-100"
             >
               <X size={20} />
             </button>
 
             {/* Header */}
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 rounded-2xl bg-neon/10 border border-neon/30 text-neon">
-                <ShieldAlert size={24} />
+              <div className="p-3.5 rounded-2xl bg-blush-100 border border-blush-200 text-pastel-coral">
+                <ShieldCheck size={26} />
               </div>
               <div>
-                <h2 className="font-anton text-2xl tracking-wider text-cream uppercase">
-                  HOST & ADMIN CONTROL PROTOCOL
+                <h2 className="font-heading text-2xl font-black text-brown-text">
+                  主持人抓周開獎中控台 🎀
                 </h2>
-                <p className="text-xs text-cream-muted font-mono">
-                  抓周大典主持人中控台 · 控制全場同步開獎
+                <p className="text-xs text-brown-muted font-cute font-bold">
+                  選定星唯實際抓取的 3 樣物品，一鍵引爆全場大螢幕與手機同步開獎！
                 </p>
               </div>
             </div>
 
             {!isUnlocked ? (
               <form onSubmit={handleUnlock} className="space-y-4 py-6">
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
-                  <Lock className="mx-auto text-neon mb-2" size={32} />
-                  <p className="text-sm font-bold text-cream">請輸入主持人管理密碼</p>
-                  <p className="text-xs text-cream-muted mt-1">（預設直接按解鎖即可進入控制台）</p>
+                <div className="p-5 rounded-3xl bg-blush-50 border border-blush-200 text-center">
+                  <Lock className="mx-auto text-pastel-coral mb-2" size={32} />
+                  <p className="text-base font-bold text-brown-text">請輸入主持人管理密碼</p>
+                  <p className="text-xs text-brown-muted mt-1 font-cute">（密碼為 0819）</p>
                 </div>
 
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="輸入管理密碼 (如: 8888)"
-                  className="w-full px-5 py-3.5 rounded-2xl bg-white/5 border border-white/20 text-cream placeholder-white/30 focus:outline-none focus:border-neon"
+                  placeholder="請輸入密碼 (0819)"
+                  className="w-full px-5 py-4 rounded-2xl bg-white border-2 border-blush-200 text-brown-text placeholder-brown-muted/50 focus:outline-none focus:border-pastel-coral"
+                  autoFocus
                 />
 
-                {errorMsg && <p className="text-xs text-rose-400 font-medium">⚠️ {errorMsg}</p>}
+                {errorMsg && <p className="text-xs text-rose-500 font-bold">⚠️ {errorMsg}</p>}
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 rounded-2xl bg-neon text-space-900 font-anton text-base tracking-wider font-bold shadow-lg hover:bg-[#60e000]"
+                  className="w-full py-4 rounded-2xl pastel-btn-primary font-heading text-base font-black tracking-wider shadow-md"
                 >
-                  UNLOCK CONTROL PANEL (進入中控)
+                  解鎖開獎控制台 (UNLOCK)
                 </button>
               </form>
             ) : (
@@ -138,11 +138,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 {/* Step 1: Select 3 Actual Picked Items */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <label className="text-sm font-bold text-cream flex items-center gap-2">
-                      <Sparkles className="text-neon" size={16} />
-                      請選取星維【實際抓取】的 3 項物品 (ACTUAL 3 PICKS)：
+                    <label className="text-sm font-black text-brown-text flex items-center gap-2 font-heading">
+                      <Sparkles className="text-pastel-coral" size={18} />
+                      請勾選星唯【實際抓取】的 3 樣志業物品：
                     </label>
-                    <span className="text-xs font-mono text-neon font-bold">
+                    <span className="text-xs font-heading font-black text-pastel-coral">
                       {selectedActualIds.length}/3 已選
                     </span>
                   </div>
@@ -154,47 +154,47 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         <div
                           key={item.id}
                           onClick={() => handleToggleItem(item.id)}
-                          className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-center gap-2.5 ${
+                          className={`p-3 rounded-2xl border-2 cursor-pointer transition-all flex items-center gap-2.5 ${
                             isPicked
-                              ? 'bg-neon/20 border-neon text-cream shadow-[0_0_10px_rgba(111,255,0,0.3)] font-bold'
-                              : 'bg-white/5 border-white/10 text-cream-muted hover:border-white/30'
+                              ? 'bg-blush-100 border-pastel-coral text-brown-text font-black shadow-sm'
+                              : 'bg-white border-blush-200 text-brown-muted hover:border-pastel-coral'
                           }`}
                         >
                           <img src={item.iconPath} alt="" className="w-6 h-6 object-contain" />
                           <span className="text-xs">{item.name}</span>
-                          {isPicked && <Check size={14} className="ml-auto text-neon" />}
+                          {isPicked && <Check size={14} className="ml-auto text-pastel-coral font-black" />}
                         </div>
                       );
                     })}
                   </div>
                 </div>
 
-                {errorMsg && <p className="text-xs text-rose-400 font-medium">⚠️ {errorMsg}</p>}
+                {errorMsg && <p className="text-xs text-rose-500 font-bold">⚠️ {errorMsg}</p>}
 
-                {/* Step 2: Big Action Buttons */}
-                <div className="space-y-3 pt-4 border-t border-white/10">
+                {/* Step 2: Trigger Button */}
+                <div className="space-y-3 pt-4 border-t border-blush-200">
                   <button
                     onClick={handleTrigger}
                     disabled={selectedActualIds.length !== 3}
-                    className={`w-full py-4 px-6 rounded-2xl font-anton tracking-widest text-lg uppercase transition-all duration-300 flex items-center justify-center gap-2 ${
+                    className={`w-full py-4 px-6 rounded-2xl font-heading font-black text-lg tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-lg ${
                       selectedActualIds.length === 3
-                        ? 'bg-neon text-space-900 font-bold shadow-[0_0_30px_rgba(111,255,0,0.6)] hover:bg-[#60e000] cursor-pointer'
-                        : 'bg-white/5 text-cream-muted/40 border border-white/10 cursor-not-allowed'
+                        ? 'pastel-btn-primary cursor-pointer'
+                        : 'bg-blush-100 text-brown-muted/40 border border-blush-200 cursor-not-allowed'
                     }`}
                   >
-                    <Flame size={22} />
-                    <span>🔥 TRIGGER REVEAL PROTOCOL (引爆全場同步開獎)</span>
+                    <PartyPopper size={22} />
+                    <span>🎉 公布星唯的抓周結果！ (TRIGGER REVEAL)</span>
                   </button>
 
                   <div className="flex gap-3">
                     <button
                       onClick={() => {
-                        if (window.confirm('確定要重設全場遊戲狀態為未揭曉嗎？')) {
+                        if (window.confirm('確定要重設全場開獎狀態回預測中嗎？')) {
                           onResetGame();
                           onClose();
                         }
                       }}
-                      className="flex-1 py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-cream-muted hover:text-white hover:border-rose-400/50 flex items-center justify-center gap-2"
+                      className="flex-1 py-3 px-4 rounded-2xl bg-cream-100 border border-blush-200 text-xs font-cute font-bold text-brown-muted hover:text-brown-text hover:border-rose-400 flex items-center justify-center gap-2"
                     >
                       <RotateCcw size={14} />
                       <span>重設為預測中狀態 (RESET)</span>

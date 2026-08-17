@@ -20,71 +20,62 @@ export const LiquidModal: React.FC<LiquidModalProps> = ({
   message,
   type = 'info',
   children,
-  actionText = '確定 (CONFIRM)',
+  actionText = '好 唷 (CONFIRM)',
   onAction,
 }) => {
   return (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-[#010828]/80 backdrop-blur-md"
+            className="fixed inset-0 bg-[#3D281D]/50 backdrop-blur-sm"
           />
 
-          {/* Modal Card */}
           <motion.div
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            initial={{ scale: 0.92, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            exit={{ scale: 0.92, opacity: 0, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-            className="liquid-glass relative w-full max-w-md p-6 md:p-8 rounded-[24px] border border-white/20 shadow-2xl z-10"
+            className="liquid-glass relative w-full max-w-md p-6 sm:p-8 rounded-[32px] border-2 border-blush-300 shadow-2xl z-10 bg-white/95"
           >
-            {/* Ambient Corner Glow */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#6FFF00]/10 rounded-full blur-2xl pointer-events-none" />
-
-            {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-5 right-5 p-2 rounded-full text-cream-muted hover:text-white hover:bg-white/10 transition-colors"
+              className="absolute top-5 right-5 p-2 rounded-full text-brown-muted hover:text-brown-text hover:bg-blush-100 transition-colors"
             >
               <X size={18} />
             </button>
 
-            {/* Header Icon */}
             <div className="flex items-center space-x-3 mb-4">
-              <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-neon">
-                {type === 'error' && <AlertCircle className="text-rose-400" size={24} />}
-                {type === 'warning' && <AlertCircle className="text-amber-400" size={24} />}
-                {type === 'success' && <CheckCircle2 className="text-neon" size={24} />}
-                {type === 'info' && <Info className="text-neon" size={24} />}
+              <div className="p-3 rounded-2xl bg-blush-100 border border-blush-200 text-pastel-coral">
+                {type === 'error' && <AlertCircle className="text-rose-500" size={24} />}
+                {type === 'warning' && <AlertCircle className="text-amber-500" size={24} />}
+                {type === 'success' && <CheckCircle2 className="text-emerald-500" size={24} />}
+                {type === 'info' && <Info className="text-pastel-coral" size={24} />}
               </div>
-              <h3 className="font-anton text-xl tracking-wider uppercase text-cream">
+              <h3 className="font-heading font-black text-xl text-brown-text">
                 {title}
               </h3>
             </div>
 
-            {/* Message or Custom Content */}
             {message && (
-              <p className="text-cream-muted text-sm leading-relaxed mb-6 font-body font-medium">
+              <p className="text-brown-muted text-sm leading-relaxed mb-6 font-cute font-medium">
                 {message}
               </p>
             )}
 
             {children}
 
-            {/* Action Buttons */}
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => {
                   if (onAction) onAction();
                   onClose();
                 }}
-                className="w-full py-3.5 px-6 rounded-2xl bg-[#6FFF00] text-[#010828] font-anton tracking-wider text-base hover:bg-[#60e000] active:scale-[0.98] transition-all duration-200 neon-btn-glow font-bold"
+                className="w-full py-3.5 px-6 rounded-2xl pastel-btn-primary font-heading font-black text-base shadow-md cursor-pointer"
               >
                 {actionText}
               </button>
