@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+        <defs><filter id="glowDrm"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#6FFF00" flood-opacity="0.6"/></filter></defs>
+        <!-- Drum Handle -->
+        <line x1="50" y1="55" x2="50" y2="88" stroke="#c68a4c" stroke-width="6" stroke-linecap="round"/>
+        <line x1="50" y1="55" x2="50" y2="88" stroke="#6FFF00" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- Drum Body -->
+        <circle cx="50" cy="40" r="24" fill="#b45309" stroke="#6FFF00" stroke-width="2.5" filter="url(#glowDrm)"/>
+        <circle cx="50" cy="40" r="18" fill="#fef3c7" stroke="#ca8a04" stroke-width="1.5"/>
+        <circle cx="50" cy="40" r="6" fill="#ef4444"/>
+        <!-- Rattle Beads & Strings -->
+        <path d="M26 40 Q16 48 18 58" stroke="#94a3b8" stroke-width="1.5" fill="none"/>
+        <circle cx="18" cy="58" r="4" fill="#dc2626" stroke="#6FFF00" stroke-width="1"/>
+        <path d="M74 40 Q84 48 82 58" stroke="#94a3b8" stroke-width="1.5" fill="none"/>
+        <circle cx="82" cy="58" r="4" fill="#dc2626" stroke="#6FFF00" stroke-width="1"/>
+    </svg>

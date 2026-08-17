@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+        <defs><filter id="glowCar"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#6FFF00" flood-opacity="0.6"/></filter></defs>
+        <!-- Wooden Toy Car Body -->
+        <path d="M20 54 Q20 40 34 38 L42 26 Q46 22 56 22 L66 22 Q74 22 78 30 L84 46 Q86 52 86 58 L86 64 Q86 66 84 66 L22 66 Q20 66 20 64 Z" fill="#d97706" stroke="#6FFF00" stroke-width="2" filter="url(#glowCar)"/>
+        <!-- Window -->
+        <path d="M44 30 L56 30 L66 30 L72 40 L44 40 Z" fill="#010828" stroke="#6FFF00" stroke-width="1.2"/>
+        <!-- Wheels -->
+        <circle cx="34" cy="68" r="10" fill="#78350f" stroke="#6FFF00" stroke-width="2"/>
+        <circle cx="34" cy="68" r="4" fill="#EFF4FF"/>
+        <circle cx="72" cy="68" r="10" fill="#78350f" stroke="#6FFF00" stroke-width="2"/>
+        <circle cx="72" cy="68" r="4" fill="#EFF4FF"/>
+    </svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+        <defs><filter id="glowRug"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#6FFF00" flood-opacity="0.6"/></filter></defs>
+        <!-- Rugby Ball Oval (rotated) -->
+        <g transform="rotate(-30 50 50)">
+            <ellipse cx="50" cy="50" rx="34" ry="20" fill="#854d0e" stroke="#6FFF00" stroke-width="2" filter="url(#glowRug)"/>
+            <!-- White Stripes -->
+            <path d="M26 36 Q30 50 26 64" stroke="#EFF4FF" stroke-width="2.5"/>
+            <path d="M74 36 Q70 50 74 64" stroke="#EFF4FF" stroke-width="2.5"/>
+            <!-- Lacing -->
+            <line x1="38" y1="50" x2="62" y2="50" stroke="#EFF4FF" stroke-width="2"/>
+            <line x1="42" y1="46" x2="42" y2="54" stroke="#EFF4FF" stroke-width="1.5"/>
+            <line x1="50" y1="46" x2="50" y2="54" stroke="#EFF4FF" stroke-width="1.5"/>
+            <line x1="58" y1="46" x2="58" y2="54" stroke="#EFF4FF" stroke-width="1.5"/>
+        </g>
+    </svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+        <defs><filter id="glowStp"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#6FFF00" flood-opacity="0.6"/></filter></defs>
+        <!-- Lion / Dragon Crest atop Stamp -->
+        <path d="M38 34 C38 22 62 22 62 34 L64 42 L36 42 Z" fill="#d97706" stroke="#6FFF00" stroke-width="1.5"/>
+        <!-- Stamp Base Block -->
+        <rect x="30" y="42" width="40" height="38" rx="3" fill="#b45309" stroke="#6FFF00" stroke-width="2" filter="url(#glowStp)"/>
+        <!-- Engraved Seal Text / Dragon Motif -->
+        <rect x="35" y="48" width="30" height="24" fill="#78350f" stroke="#f59e0b" stroke-width="1"/>
+        <text x="50" y="64" fill="#6FFF00" font-size="11" font-weight="bold" text-anchor="middle">帥</text>
+    </svg>

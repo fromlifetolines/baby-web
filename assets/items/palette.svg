@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+        <defs><filter id="glowPal"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#6FFF00" flood-opacity="0.6"/></filter></defs>
+        <!-- Wooden Palette -->
+        <path d="M20 50 C20 30 35 18 55 18 C75 18 84 32 84 48 C84 64 74 78 58 78 C50 78 46 72 42 72 C38 72 36 78 30 78 C24 78 20 68 20 50 Z" fill="#b45309" stroke="#6FFF00" stroke-width="2" filter="url(#glowPal)"/>
+        <!-- Thumb hole -->
+        <circle cx="32" cy="48" r="6" fill="#010828" stroke="#6FFF00" stroke-width="1.2"/>
+        <!-- Paint Blobs -->
+        <circle cx="52" cy="28" r="4.5" fill="#ef4444"/>
+        <circle cx="68" cy="34" r="4.5" fill="#f59e0b"/>
+        <circle cx="74" cy="48" r="4.5" fill="#6FFF00"/>
+        <circle cx="66" cy="62" r="4.5" fill="#3b82f6"/>
+        <circle cx="50" cy="68" r="4.5" fill="#a855f7"/>
+    </svg>

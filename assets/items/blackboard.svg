@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+        <defs><filter id="glowBb"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#6FFF00" flood-opacity="0.6"/></filter></defs>
+        <!-- Wooden Easel legs -->
+        <line x1="28" y1="30" x2="18" y2="84" stroke="#c68a4c" stroke-width="3" stroke-linecap="round"/>
+        <line x1="72" y1="30" x2="82" y2="84" stroke="#c68a4c" stroke-width="3" stroke-linecap="round"/>
+        <line x1="50" y1="20" x2="50" y2="84" stroke="#8b5a2b" stroke-width="2" stroke-linecap="round"/>
+        <!-- Blackboard Frame -->
+        <rect x="22" y="25" width="56" height="42" rx="3" fill="#1e293b" stroke="#6FFF00" stroke-width="2" filter="url(#glowBb)"/>
+        <text x="50" y="46" fill="#6FFF00" font-size="10" font-weight="bold" text-anchor="middle">A B C</text>
+        <text x="50" y="58" fill="#EFF4FF" font-size="8" text-anchor="middle">1 + 1 = 2</text>
+    </svg>

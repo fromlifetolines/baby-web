@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+        <defs><filter id="glowComp"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#6FFF00" flood-opacity="0.6"/></filter></defs>
+        <!-- Dial Outer -->
+        <circle cx="50" cy="50" r="32" fill="#031042" stroke="#6FFF00" stroke-width="2.5" filter="url(#glowComp)"/>
+        <circle cx="50" cy="50" r="26" fill="#010828" stroke="#8EA3D7" stroke-width="1" stroke-dasharray="2 4"/>
+        <!-- Cardinal Marks -->
+        <text x="50" y="28" fill="#6FFF00" font-size="8" font-weight="bold" text-anchor="middle">N</text>
+        <text x="50" y="78" fill="#8EA3D7" font-size="8" text-anchor="middle">S</text>
+        <text x="75" y="53" fill="#8EA3D7" font-size="8" text-anchor="middle">E</text>
+        <text x="25" y="53" fill="#8EA3D7" font-size="8" text-anchor="middle">W</text>
+        <!-- Needles -->
+        <polygon points="50,28 45,50 50,47 55,50" fill="#ef4444" stroke="#fff" stroke-width="0.5"/>
+        <polygon points="50,72 45,50 50,53 55,50" fill="#EFF4FF" stroke="#94a3b8" stroke-width="0.5"/>
+        <circle cx="50" cy="50" r="4" fill="#6FFF00"/>
+    </svg>
