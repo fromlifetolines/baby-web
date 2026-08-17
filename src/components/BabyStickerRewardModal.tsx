@@ -72,8 +72,8 @@ export const BabyStickerRewardModal: React.FC<BabyStickerRewardModalProps> = ({
 
             <div className="flex gap-3">
               <a
-                href={`${import.meta.env.BASE_URL}assets/baby/qiumi.svg`}
-                download="xingwei-qiumi.svg"
+                href={`${import.meta.env.BASE_URL}assets/baby/07.png`}
+                download="xingwei-qiumi.png"
                 className="flex-1 py-3.5 px-4 rounded-2xl pastel-btn-primary font-heading text-sm font-black tracking-wider shadow-md flex items-center justify-center gap-2"
               >
                 <Download size={16} />

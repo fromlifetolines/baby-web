@@ -61,9 +61,9 @@ export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerMo
           >
             <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-white shadow-inner">
               <img
-                src={`${import.meta.env.BASE_URL}assets/baby/qiumi.svg`}
+                src={`${import.meta.env.BASE_URL}assets/baby/08.png`}
                 alt="Baby Xing-Wei"
-                className="w-20 h-20 sm:w-24 sm:h-24 object-contain hover:scale-110 transition-transform duration-300 cursor-pointer"
+                className="w-20 h-20 sm:w-24 sm:h-24 object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
                 onClick={onOpenStickerModal}
                 title="點擊查看專屬 LINE 貼圖"
               />

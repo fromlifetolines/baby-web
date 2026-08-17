@@ -11,7 +11,7 @@ import {
   ChartOptions,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import { ZHUAZHOU_ITEMS, ZhuazhouItem } from '../config/itemsData';
+import { ZHUAZHOU_ITEMS, ZhuazhouItem, BABY_STICKERS, BABY_AVATAR_IMG } from '../config/itemsData';
 import { GuessRecord } from '../types';
 import { 
   Sparkles, 
@@ -21,7 +21,8 @@ import {
   Clock, 
   Monitor, 
   Heart,
-  Settings
+  Settings,
+  Gift
 } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -154,21 +155,42 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="min-h-screen pb-24 pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative">
-      {/* Top Banner Bar */}
+      {/* Top Banner with Baby Xing-Wei Avatar Bubble */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="flex h-3 w-3 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pastel-coral opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-pastel-coral"></span>
-            </span>
-            <span className="text-xs font-cute font-bold tracking-wider text-pastel-rose uppercase">
-              LIVE PREDICTION DASHBOARD · 即時戰況
-            </span>
+        <div className="flex items-center gap-4">
+          {/* Baby Avatar Bubble (08.png) with soft glowing border */}
+          <div className="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0">
+            <motion.div
+              animate={{ rotate: [0, 3, -3, 0] }}
+              transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
+              className="w-full h-full rounded-full p-1 bg-gradient-to-tr from-pastel-coral via-pastel-pink to-cream-200 shadow-soft-pink"
+            >
+              <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-white shadow-inner">
+                <img
+                  src={BABY_AVATAR_IMG}
+                  alt="星唯"
+                  className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
+                  onClick={onOpenStickerModal}
+                  title="星唯抓周紀念"
+                />
+              </div>
+            </motion.div>
           </div>
-          <h1 className="font-heading text-3xl sm:text-4xl font-black text-brown-text">
-            抓周即時預測榜單 🌸
-          </h1>
+
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="flex h-3 w-3 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pastel-coral opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-pastel-coral"></span>
+              </span>
+              <span className="text-xs font-cute font-bold tracking-wider text-pastel-rose uppercase">
+                LIVE PREDICTION DASHBOARD · 即時戰況
+              </span>
+            </div>
+            <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-black text-brown-text">
+              星唯抓周即時預測榜單 🌸
+            </h1>
+          </div>
         </div>
 
         {/* Action Buttons */}
@@ -209,7 +231,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-cute font-bold px-2 py-0.5 rounded-full bg-pastel-coral text-white">
+                <span className="text-xs font-cute font-bold px-2.5 py-0.5 rounded-full bg-pastel-coral text-white">
                   預測已送出
                 </span>
                 <span className="text-xs text-brown-muted font-bold">Waiting for Reveal...</span>
@@ -236,7 +258,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </motion.div>
 
-      {/* Top 3 Predicted Items */}
+      {/* Top 3 Predicted Items Spotlight */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-4">
           <Flame className="text-pastel-coral" size={20} />
@@ -305,7 +327,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Main Grid: Chart & Live Guest Feed */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Left 2 Cols: Soft Pastel Horizontal Bar Chart */}
         <div className="lg:col-span-2 liquid-glass p-6 sm:p-8 rounded-[32px] border-2 border-blush-200 shadow-xl flex flex-col justify-between">
           <div className="flex items-center justify-between mb-6">
@@ -384,6 +406,62 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span>主持人後台</span>
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* 🎁 The Sticker Award (貼圖大賞) Section in Frosted Liquid Glass Grid */}
+      <div className="liquid-glass p-6 sm:p-8 rounded-[36px] border-2 border-blush-300 shadow-xl bg-gradient-to-b from-white/95 via-blush-50/60 to-white/95">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-2xl bg-blush-100 text-pastel-coral border border-blush-200">
+              <Gift size={24} />
+            </div>
+            <div>
+              <h3 className="font-heading text-xl sm:text-2xl font-black text-brown-text flex items-center gap-2">
+                <span>貼圖大賞 🎁</span>
+                <span className="text-xs font-cute px-3 py-0.5 rounded-full bg-pastel-coral text-white font-bold">
+                  星唯 1 歲專屬
+                </span>
+              </h3>
+              <p className="text-xs text-brown-muted font-cute font-medium mt-0.5">
+                精選星唯可愛表情包，活動結束即可獲贈高解析度貼圖！
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={onOpenStickerModal}
+            className="pastel-btn-primary px-5 py-2.5 rounded-2xl text-xs font-heading font-black shadow-md flex items-center justify-center gap-1.5 self-start sm:self-auto"
+          >
+            <Sparkles size={14} />
+            <span>查看下載全套貼圖</span>
+          </button>
+        </div>
+
+        {/* 3 Frosted Sticker Slots */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          {BABY_STICKERS.map((sticker) => (
+            <motion.div
+              key={sticker.id}
+              whileHover={{ scale: 1.03, y: -4 }}
+              onClick={onOpenStickerModal}
+              className="p-5 rounded-[28px] bg-white/90 border-2 border-blush-200 hover:border-pastel-coral transition-all cursor-pointer flex flex-col items-center justify-between text-center shadow-card-bouncy"
+            >
+              <div className="w-28 h-28 p-2 bg-gradient-to-b from-blush-50 to-white rounded-2xl flex items-center justify-center mb-3 shadow-inner border border-blush-100">
+                <img
+                  src={sticker.image}
+                  alt={sticker.name}
+                  className="w-full h-full object-contain drop-shadow-sm"
+                />
+              </div>
+              <h4 className="font-heading text-lg font-black text-brown-text">
+                {sticker.tag}
+              </h4>
+              <p className="text-xs text-brown-muted mt-1 font-cute font-medium">
+                {sticker.description}
+              </p>
+            </motion.div>
+          ))}
         </div>
       </div>
     </div>

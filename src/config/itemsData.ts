@@ -10,6 +10,8 @@ export type ZhuazhouItem = {
 
 const base = import.meta.env.BASE_URL || '/';
 
+export const BABY_AVATAR_IMG = `${base}assets/baby/08.png`;
+
 export const ZHUAZHOU_ITEMS: ZhuazhouItem[] = [
   { id: 'item_01', name: '烏克麗麗', meaning: '音樂家', iconPath: `${base}assets/items/ukulele.svg`, symbol: '🎸', category: 'Arts', desc: '天生音感敏銳，創造動人旋律' },
   { id: 'item_02', name: '相機', meaning: '攝影師', iconPath: `${base}assets/items/camera.svg`, symbol: '📷', category: 'Media', desc: '捕捉世間光影，記錄最美瞬間' },
@@ -35,20 +37,23 @@ export const BABY_STICKERS = [
     name: '啾咪',
     tag: '啾咪 💋',
     description: '嘟嘟嘴送愛心！幸福滿滿',
-    image: `${base}assets/baby/qiumi.svg`,
+    image: `${base}assets/baby/07.png`,
+    rawFile: `${base}assets/baby/07.png`,
   },
   {
     id: 'sticker_02',
     name: '嘿嘿',
     tag: '嘿嘿 😜',
     description: '俏皮吐舌頭！萌翻全場',
-    image: `${base}assets/baby/heihei.svg`,
+    image: `${base}assets/baby/01.png`,
+    rawFile: `${base}assets/baby/01.png`,
   },
   {
     id: 'sticker_03',
     name: '開心',
     tag: '開心！ ✨',
     description: '暖心大笑燦爛！滿滿正能量',
-    image: `${base}assets/baby/kaixin.svg`,
+    image: `${base}assets/baby/05.png`,
+    rawFile: `${base}assets/baby/05.png`,
   },
 ];
