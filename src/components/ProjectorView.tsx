@@ -195,47 +195,68 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({ guesses, onOpenAdm
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-heading text-lg sm:text-xl font-black text-brown-text flex items-center gap-2">
                 <Trophy size={20} className="text-pastel-coral" />
-                <span>人氣榜首前三名 (TOP 3)</span>
+                <span>{guesses.length === 0 ? '人氣榜首（虛位以待）' : '人氣榜首前三名 (TOP 3)'}</span>
               </h3>
-              <span className="text-xs font-cute text-brown-muted font-bold">即時票選領先</span>
+              <span className="text-xs font-cute text-brown-muted font-bold">
+                {guesses.length === 0 ? '等待首投' : '即時票選領先'}
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {top3Items.map((item, idx) => {
-                const medals = ['🥇 第一名', '🥈 第二名', '🥉 第三名'];
-                const bgs = [
-                  'bg-amber-50/80 border-amber-300', 
-                  'bg-slate-50/80 border-slate-300', 
-                  'bg-orange-50/80 border-orange-300'
-                ];
-                return (
-                  <div
-                    key={item.id}
-                    className={`p-3 rounded-2xl border-2 ${bgs[idx]} flex flex-col justify-between shadow-sm`}
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[11px] font-heading font-black text-brown-text px-2 py-0.5 rounded-md bg-white">
-                        {medals[idx]}
-                      </span>
-                      <span className="font-heading font-black text-base text-pastel-coral">
-                        {item.count} 票
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2.5 my-1">
-                      <div className="w-10 h-10 p-1 bg-white rounded-xl flex items-center justify-center border border-blush-200 shrink-0">
-                        <img src={item.iconPath} alt="" className="w-full h-full object-contain" />
+            {guesses.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-6 rounded-2xl bg-gradient-to-r from-blush-50 via-cream-100 to-blush-50 border-2 border-dashed border-blush-300 text-center flex flex-col items-center justify-center gap-2 shadow-inner"
+              >
+                <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white text-pastel-coral text-xs font-heading font-black shadow-sm">
+                  <Sparkles size={14} className="text-pastel-coral" />
+                  <span>🏆 人氣榜首（虛位以待）</span>
+                </div>
+                <h4 className="font-heading text-xl sm:text-2xl font-black text-brown-text mt-1">
+                  ✨ 等待親友投下第一個預測... ✨
+                </h4>
+                <p className="text-xs sm:text-sm font-cute font-bold text-pastel-rose">
+                  快掃描右側 QR Code，投下第一票成為首位預言家！
+                </p>
+              </motion.div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {top3Items.map((item, idx) => {
+                  const medals = ['🥇 第一名', '🥈 第二名', '🥉 第三名'];
+                  const bgs = [
+                    'bg-amber-50/80 border-amber-300', 
+                    'bg-slate-50/80 border-slate-300', 
+                    'bg-orange-50/80 border-orange-300'
+                  ];
+                  return (
+                    <div
+                      key={item.id}
+                      className={`p-3 rounded-2xl border-2 ${bgs[idx]} flex flex-col justify-between shadow-sm`}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[11px] font-heading font-black text-brown-text px-2 py-0.5 rounded-md bg-white">
+                          {medals[idx]}
+                        </span>
+                        <span className="font-heading font-black text-base text-pastel-coral">
+                          {item.count} 票
+                        </span>
                       </div>
-                      <div>
-                        <h4 className="font-heading font-black text-brown-text text-sm">
-                          {item.name}
-                        </h4>
-                        <p className="text-[11px] font-bold text-pastel-rose">{item.meaning}</p>
+                      <div className="flex items-center gap-2.5 my-1">
+                        <div className="w-10 h-10 p-1 bg-white rounded-xl flex items-center justify-center border border-blush-200 shrink-0">
+                          <img src={item.iconPath} alt="" className="w-full h-full object-contain" />
+                        </div>
+                        <div>
+                          <h4 className="font-heading font-black text-brown-text text-sm">
+                            {item.name}
+                          </h4>
+                          <p className="text-[11px] font-bold text-pastel-rose">{item.meaning}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Real-time Horizontal Bar Chart */}
