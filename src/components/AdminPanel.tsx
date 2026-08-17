@@ -9,7 +9,9 @@ import {
   PartyPopper, 
   Check, 
   Lock, 
-  ShieldCheck 
+  ShieldCheck,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -18,6 +20,7 @@ interface AdminPanelProps {
   gameState: GameState;
   onTriggerReveal: (actualItems: string[]) => void;
   onResetGame: () => void;
+  onResetAllData: () => Promise<void>;
   initialUnlocked?: boolean;
 }
 
@@ -27,6 +30,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   gameState,
   onTriggerReveal,
   onResetGame,
+  onResetAllData,
   initialUnlocked = false,
 }) => {
   const [selectedActualIds, setSelectedActualIds] = useState<string[]>(
@@ -35,6 +39,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [password, setPassword] = useState('');
   const [isUnlocked, setIsUnlocked] = useState(initialUnlocked);
   const [errorMsg, setErrorMsg] = useState('');
+  const [showConfirmResetModal, setShowConfirmResetModal] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   const handleToggleItem = (id: string) => {
     if (selectedActualIds.includes(id)) {
@@ -54,7 +60,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       setIsUnlocked(true);
       setErrorMsg('');
     } else {
-      setErrorMsg('密碼錯誤！請輸入主持人管理密碼 0819');
+      setErrorMsg('密碼錯誤！請輸入正確的主持人管理密碼');
     }
   };
 
@@ -65,6 +71,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }
     onTriggerReveal(selectedActualIds);
     onClose();
+  };
+
+  const handleExecuteResetAllData = async () => {
+    try {
+      setIsResetting(true);
+      await onResetAllData();
+      setIsResetting(false);
+      setShowConfirmResetModal(false);
+      onClose();
+    } catch (e) {
+      console.error(e);
+      setIsResetting(false);
+    }
   };
 
   return (
@@ -112,19 +131,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <div className="p-5 rounded-3xl bg-blush-50 border border-blush-200 text-center">
                   <Lock className="mx-auto text-pastel-coral mb-2" size={32} />
                   <p className="text-base font-bold text-brown-text">請輸入主持人管理密碼</p>
-                  <p className="text-xs text-brown-muted mt-1 font-cute">（密碼為 0819）</p>
                 </div>
 
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="請輸入密碼 (0819)"
-                  className="w-full px-5 py-4 rounded-2xl bg-white border-2 border-blush-200 text-brown-text placeholder-brown-muted/50 focus:outline-none focus:border-pastel-coral"
+                  placeholder="請輸入主持人密碼"
+                  className="w-full px-5 py-4 rounded-2xl bg-white border-2 border-blush-200 text-brown-text placeholder-brown-muted/50 focus:outline-none focus:border-pastel-coral text-center"
                   autoFocus
                 />
 
-                {errorMsg && <p className="text-xs text-rose-500 font-bold">⚠️ {errorMsg}</p>}
+                {errorMsg && <p className="text-xs text-rose-500 font-bold text-center">⚠️ {errorMsg}</p>}
 
                 <button
                   type="submit"
@@ -171,7 +189,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                 {errorMsg && <p className="text-xs text-rose-500 font-bold">⚠️ {errorMsg}</p>}
 
-                {/* Step 2: Trigger Button */}
+                {/* Step 2: Trigger Reveal Button */}
                 <div className="space-y-3 pt-4 border-t border-blush-200">
                   <button
                     onClick={handleTrigger}
@@ -186,7 +204,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <span>🎉 公布星唯的抓周結果！ (TRIGGER REVEAL)</span>
                   </button>
 
-                  <div className="flex gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    {/* Reset State only */}
                     <button
                       onClick={() => {
                         if (window.confirm('確定要重設全場開獎狀態回預測中嗎？')) {
@@ -194,16 +213,70 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           onClose();
                         }
                       }}
-                      className="flex-1 py-3 px-4 rounded-2xl bg-cream-100 border border-blush-200 text-xs font-cute font-bold text-brown-muted hover:text-brown-text hover:border-rose-400 flex items-center justify-center gap-2"
+                      className="py-3 px-4 rounded-2xl bg-cream-100 border border-blush-200 text-xs font-cute font-bold text-brown-muted hover:text-brown-text hover:border-rose-400 flex items-center justify-center gap-2 shadow-sm"
                     >
                       <RotateCcw size={14} />
-                      <span>重設為預測中狀態 (RESET)</span>
+                      <span>重設開獎狀態 (RESET STATE)</span>
+                    </button>
+
+                    {/* Prominent Danger Button: Reset All Data */}
+                    <button
+                      onClick={() => setShowConfirmResetModal(true)}
+                      className="py-3 px-4 rounded-2xl bg-rose-50 border-2 border-rose-300 text-xs font-cute font-black text-rose-600 hover:bg-rose-100 hover:border-rose-500 flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      <Trash2 size={14} />
+                      <span>🧹 一鍵清空所有測試資料 (清空歸零)</span>
                     </button>
                   </div>
                 </div>
               </div>
             )}
           </motion.div>
+
+          {/* Confirm Reset Data Modal */}
+          <AnimatePresence>
+            {showConfirmResetModal && (
+              <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
+                <div 
+                  onClick={() => setShowConfirmResetModal(false)}
+                  className="fixed inset-0 bg-[#3D281D]/75 backdrop-blur-sm"
+                />
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  className="liquid-glass relative w-full max-w-md p-6 rounded-[32px] border-2 border-rose-400 shadow-2xl z-10 bg-white text-center"
+                >
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center">
+                    <AlertTriangle size={28} />
+                  </div>
+                  <h3 className="font-heading text-xl font-black text-brown-text mb-2">
+                    確認清空所有賓客資料？
+                  </h3>
+                  <p className="text-xs text-rose-600 font-cute font-bold leading-relaxed mb-6">
+                    確定要清空所有賓客的投票資料嗎？活動開始前請執行此動作，此操作無法復原！
+                  </p>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleExecuteResetAllData}
+                      disabled={isResetting}
+                      className="flex-1 py-3 px-4 rounded-2xl bg-rose-600 text-white font-heading font-black text-sm shadow-md hover:bg-rose-700 active:scale-95 disabled:opacity-50"
+                    >
+                      {isResetting ? '清空中...' : '確定清空歸零'}
+                    </button>
+                    <button
+                      onClick={() => setShowConfirmResetModal(false)}
+                      disabled={isResetting}
+                      className="px-5 py-3 rounded-2xl bg-cream-100 border border-blush-200 text-sm font-bold text-brown-text hover:bg-blush-100"
+                    >
+                      取消
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
         </div>
       )}
     </AnimatePresence>

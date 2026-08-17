@@ -9,7 +9,9 @@ import {
   serverTimestamp, 
   query, 
   orderBy, 
-  limit 
+  limit,
+  getDocs,
+  writeBatch
 } from 'firebase/firestore';
 import { GuessRecord, GameState } from '../types';
 
@@ -35,10 +37,10 @@ try {
   console.warn("Firebase fallback to real-time BroadcastChannel & storage sync engine:", e);
 }
 
-const broadcast = typeof window !== 'undefined' ? new BroadcastChannel('xingwei_boutique_realtime_protocol') : null;
+const broadcast = typeof window !== 'undefined' ? new BroadcastChannel('xingwei_boutique_realtime_protocol_v3') : null;
 
-// Initial authentic party guests
-const DEFAULT_GUESTS: GuessRecord[] = [
+// Initial sample party guests for preview
+const INITIAL_DEMO_GUESTS: GuessRecord[] = [
   { id: 'g_1', name: '舅舅 Howard', selections: ['item_09', 'item_16', 'item_01'], timestamp: Date.now() - 1000 * 60 * 20, avatarSeed: 1 },
   { id: 'g_2', name: '阿嬤 (Grandma)', selections: ['item_09', 'item_15', 'item_04'], timestamp: Date.now() - 1000 * 60 * 15, avatarSeed: 2 },
   { id: 'g_3', name: '阿公 (Grandpa)', selections: ['item_11', 'item_10', 'item_06'], timestamp: Date.now() - 1000 * 60 * 12, avatarSeed: 3 },
@@ -47,19 +49,19 @@ const DEFAULT_GUESTS: GuessRecord[] = [
   { id: 'g_6', name: '姨婆 May', selections: ['item_04', 'item_09', 'item_13'], timestamp: Date.now() - 1000 * 60 * 3, avatarSeed: 6 },
 ];
 
-const LOCAL_STORAGE_KEY_GUESSES = 'xingwei_zhuazhou_guesses_v2';
-const LOCAL_STORAGE_KEY_GAME = 'xingwei_zhuazhou_gamestate_v2';
+const LOCAL_STORAGE_KEY_GUESSES = 'xingwei_zhuazhou_guesses_v3';
+const LOCAL_STORAGE_KEY_GAME = 'xingwei_zhuazhou_gamestate_v3';
 
 export const getStoredGuesses = (): GuessRecord[] => {
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY_GUESSES);
-    if (!raw) {
-      localStorage.setItem(LOCAL_STORAGE_KEY_GUESSES, JSON.stringify(DEFAULT_GUESTS));
-      return DEFAULT_GUESTS;
+    if (raw === null) {
+      localStorage.setItem(LOCAL_STORAGE_KEY_GUESSES, JSON.stringify(INITIAL_DEMO_GUESTS));
+      return INITIAL_DEMO_GUESTS;
     }
     return JSON.parse(raw);
   } catch (e) {
-    return DEFAULT_GUESTS;
+    return [];
   }
 };
 
@@ -69,7 +71,7 @@ export const getStoredGameState = (): GameState => {
     if (!raw) {
       const initial: GameState = {
         isRevealed: false,
-        actualItems: ['item_09', 'item_16', 'item_01'], // Default if triggered
+        actualItems: ['item_09', 'item_16', 'item_01'],
       };
       localStorage.setItem(LOCAL_STORAGE_KEY_GAME, JSON.stringify(initial));
       return initial;
@@ -110,12 +112,15 @@ export const submitGuessToDb = async (name: string, selections: string[]): Promi
   }
 };
 
-// API: Subscribe to Guesses
+// API: Subscribe to Guesses in real-time
 export const subscribeToGuesses = (callback: (guesses: GuessRecord[]) => void) => {
+  let isUnmounted = false;
+
   if (isFirebaseReady && db) {
     try {
-      const q = query(collection(db, 'guesses'), orderBy('timestamp', 'desc'), limit(150));
+      const q = query(collection(db, 'guesses'), orderBy('timestamp', 'desc'), limit(200));
       const unsubscribe = onSnapshot(q, (snapshot) => {
+        if (isUnmounted) return;
         const list: GuessRecord[] = [];
         snapshot.forEach((doc) => {
           const data = doc.data();
@@ -126,26 +131,33 @@ export const subscribeToGuesses = (callback: (guesses: GuessRecord[]) => void) =
             timestamp: data.timestamp?.toDate?.()?.getTime() || Date.now(),
           });
         });
-        if (list.length > 0) {
-          callback(list);
-          localStorage.setItem(LOCAL_STORAGE_KEY_GUESSES, JSON.stringify(list));
-        }
+        callback(list);
+        localStorage.setItem(LOCAL_STORAGE_KEY_GUESSES, JSON.stringify(list));
+      }, (error) => {
+        console.warn("Firestore snapshot listener error:", error);
       });
-      return unsubscribe;
+
+      return () => {
+        isUnmounted = true;
+        unsubscribe();
+      };
     } catch (e) {
-      console.warn("Firestore snapshot error:", e);
+      console.warn("Firestore setup error:", e);
     }
   }
 
+  // Fallback broadcast listener
   callback(getStoredGuesses());
 
   const handleMessage = (event: MessageEvent) => {
+    if (isUnmounted) return;
     if (event.data?.type === 'NEW_GUESS' || event.data?.type === 'RESET_GUESSES') {
       callback(getStoredGuesses());
     }
   };
 
   const handleStorage = (e: StorageEvent) => {
+    if (isUnmounted) return;
     if (e.key === LOCAL_STORAGE_KEY_GUESSES) {
       callback(getStoredGuesses());
     }
@@ -155,6 +167,7 @@ export const subscribeToGuesses = (callback: (guesses: GuessRecord[]) => void) =
   window.addEventListener('storage', handleStorage);
 
   return () => {
+    isUnmounted = true;
     if (broadcast) broadcast.removeEventListener('message', handleMessage);
     window.removeEventListener('storage', handleStorage);
   };
@@ -162,14 +175,22 @@ export const subscribeToGuesses = (callback: (guesses: GuessRecord[]) => void) =
 
 // API: Subscribe to Game State (Reveal trigger)
 export const subscribeToGameState = (callback: (state: GameState) => void) => {
+  let isUnmounted = false;
+
   if (isFirebaseReady && db) {
     try {
       const unsubscribe = onSnapshot(doc(db, 'gameState', 'current'), (docSnap) => {
+        if (isUnmounted) return;
         if (docSnap.exists()) {
           callback(docSnap.data() as GameState);
         }
+      }, (error) => {
+        console.warn("Firestore gameState snapshot error:", error);
       });
-      return unsubscribe;
+      return () => {
+        isUnmounted = true;
+        unsubscribe();
+      };
     } catch (e) {
       console.warn("Firestore state sync error:", e);
     }
@@ -178,12 +199,14 @@ export const subscribeToGameState = (callback: (state: GameState) => void) => {
   callback(getStoredGameState());
 
   const handleMessage = (event: MessageEvent) => {
+    if (isUnmounted) return;
     if (event.data?.type === 'GAME_STATE_UPDATE') {
       callback(event.data.payload);
     }
   };
 
   const handleStorage = (e: StorageEvent) => {
+    if (isUnmounted) return;
     if (e.key === LOCAL_STORAGE_KEY_GAME) {
       callback(getStoredGameState());
     }
@@ -193,6 +216,7 @@ export const subscribeToGameState = (callback: (state: GameState) => void) => {
   window.addEventListener('storage', handleStorage);
 
   return () => {
+    isUnmounted = true;
     if (broadcast) broadcast.removeEventListener('message', handleMessage);
     window.removeEventListener('storage', handleStorage);
   };
@@ -221,10 +245,36 @@ export const updateGameStateInDb = async (state: Partial<GameState>): Promise<vo
   }
 };
 
-// API: Reset all guesses
+// API: Clean Slate - Reset & Delete ALL Guesses & Reset GameState
 export const resetAllGuessesInDb = async (): Promise<void> => {
-  localStorage.setItem(LOCAL_STORAGE_KEY_GUESSES, JSON.stringify(DEFAULT_GUESTS));
+  if (isFirebaseReady && db) {
+    try {
+      const q = collection(db, 'guesses');
+      const snap = await getDocs(q);
+      const batch = writeBatch(db);
+      snap.forEach((document) => {
+        batch.delete(document.ref);
+      });
+      await batch.commit();
+
+      await setDoc(doc(db, 'gameState', 'current'), {
+        isRevealed: false,
+        actualItems: ['item_09', 'item_16', 'item_01'],
+      }, { merge: true });
+    } catch (e) {
+      console.warn("Firestore batch delete error:", e);
+    }
+  }
+
+  localStorage.setItem(LOCAL_STORAGE_KEY_GUESSES, JSON.stringify([]));
+  localStorage.setItem(LOCAL_STORAGE_KEY_GAME, JSON.stringify({
+    isRevealed: false,
+    actualItems: ['item_09', 'item_16', 'item_01'],
+  }));
+  localStorage.removeItem('xingwei_user_selections_v2');
+
   if (broadcast) {
-    broadcast.postMessage({ type: 'RESET_GUESSES' });
+    broadcast.postMessage({ type: 'RESET_GUESSES', all: [] });
+    broadcast.postMessage({ type: 'GAME_STATE_UPDATE', payload: { isRevealed: false, actualItems: ['item_09', 'item_16', 'item_01'] } });
   }
 };

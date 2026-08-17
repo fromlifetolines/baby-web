@@ -7,7 +7,11 @@ interface PortalViewProps {
   onOpenStickerModal: () => void;
 }
 
-const QUICK_TITLES = ['舅舅', '阿嬤', '阿公', '姑姑', '乾爹', '姨婆', '叔叔', '乾媽', '好友', '表哥', '表姐'];
+const QUICK_TITLES = [
+  '舅舅', '阿嬤', '阿公', '爺爺', '奶奶', 
+  '姑姑', '乾爹', '姨婆', '叔叔', '乾媽', 
+  '好友', '堂哥', '堂姐', '表哥', '表姐'
+];
 
 export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerModal }) => {
   const [name, setName] = useState('');
@@ -30,8 +34,9 @@ export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerMo
 
   const handleChipClick = (prefix: string) => {
     setSelectedPrefix(prefix);
-    if (!name.includes(prefix)) {
-      setName((prev) => `${prefix} ${prev.replace(/^(舅舅|阿嬤|阿公|姑姑|乾爹|姨婆|叔叔|乾媽|好友|表哥|表姐)\s*/, '')}`.trim());
+    const prefixRegex = /^(舅舅|阿嬤|阿公|爺爺|奶奶|姑姑|乾爹|姨婆|叔叔|乾媽|好友|堂哥|堂姐|表哥|表姐)\s*/;
+    if (!name.startsWith(prefix)) {
+      setName((prev) => `${prefix} ${prev.replace(prefixRegex, '')}`.trim());
     }
   };
 
@@ -82,7 +87,7 @@ export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerMo
             星唯 1 歲抓周預測大典
           </h1>
           <p className="font-cute text-sm sm:text-base text-brown-muted font-medium pt-1">
-            請親朋好友精準預測星維即將抓取的前 3 項志業 🎀
+            請親朋好友精準預測星唯即將抓取的前 3 項志業 🎀
           </p>
         </div>
 
@@ -101,7 +106,7 @@ export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerMo
                   setName(e.target.value);
                   if (errorMsg) setErrorMsg('');
                 }}
-                placeholder="例如：舅舅 Howard、阿嬤、乾爹 Ken..."
+                placeholder="例如：舅舅 Howard、阿嬤、奶奶、堂哥..."
                 className="w-full px-5 py-4 rounded-2xl bg-white/90 border-2 border-blush-200 text-brown-text placeholder-brown-muted/50 focus:outline-none focus:border-pastel-coral focus:ring-4 focus:ring-pastel-pink/20 transition-all font-body text-base shadow-sm"
                 autoFocus
               />

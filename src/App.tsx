@@ -152,6 +152,16 @@ export const App: React.FC = () => {
     }
   };
 
+  // Handler: Admin Reset All Data (Clean Slate)
+  const handleResetAllData = async () => {
+    await resetAllGuessesInDb();
+    setGuesses([]);
+    setUserSelections([]);
+    if (appMode === 'guest') {
+      setView(userName ? 'matrix' : 'portal');
+    }
+  };
+
   return (
     <div className="relative min-h-screen text-brown-text overflow-x-hidden font-body select-none">
       {/* Background Soft Pastel Blobs & Sparkles */}
@@ -276,6 +286,7 @@ export const App: React.FC = () => {
         gameState={gameState}
         onTriggerReveal={handleTriggerReveal}
         onResetGame={handleResetGame}
+        onResetAllData={handleResetAllData}
         initialUnlocked={adminPreUnlocked}
       />
 
