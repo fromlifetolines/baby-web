@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+    <defs>
+        <filter id="clapGlow"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#F59E0B" flood-opacity="0.6"/></filter>
+    </defs>
+    <!-- Clapper Lower Board -->
+    <rect x="18" y="44" width="64" height="42" rx="5" fill="#1F2937" stroke="#F59E0B" stroke-width="2" filter="url(#clapGlow)"/>
+    <!-- Director Board Text Lines -->
+    <rect x="24" y="52" width="24" height="10" rx="2" fill="#374151"/>
+    <text x="26" y="60" fill="#FDE047" font-size="7" font-family="sans-serif" font-weight="bold">SCENE 1</text>
+    <rect x="52" y="52" width="24" height="10" rx="2" fill="#374151"/>
+    <text x="55" y="60" fill="#FDE047" font-size="7" font-family="sans-serif" font-weight="bold">TAKE 1</text>
+    <rect x="24" y="66" width="52" height="14" rx="2" fill="#374151"/>
+    <text x="32" y="76" fill="#FFFFFF" font-size="7" font-family="sans-serif" font-weight="bold">DIRECTOR: 星唯</text>
+    <!-- Top Clapper Stick (Angled) -->
+    <g transform="rotate(-15 18 40)">
+        <rect x="18" y="26" width="64" height="14" rx="3" fill="#111827" stroke="#F59E0B" stroke-width="2"/>
+        <!-- Zebra Stripes -->
+        <polygon points="26,26 34,26 26,40 18,40" fill="#FFFFFF"/>
+        <polygon points="42,26 50,26 42,40 34,40" fill="#FFFFFF"/>
+        <polygon points="58,26 66,26 58,40 50,40" fill="#FFFFFF"/>
+        <polygon points="74,26 82,26 74,40 66,40" fill="#FFFFFF"/>
+    </g>
+    <!-- Hinge Pin -->
+    <circle cx="18" cy="42" r="4" fill="#F59E0B" stroke="#B45309" stroke-width="1"/>
+</svg>
