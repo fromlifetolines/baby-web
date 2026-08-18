@@ -79,3 +79,27 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 111, 97, 0.7);
 }
+
+/* ==========================================================================
+   Targeted Overrides: Full Descriptions & Fixed Bottom Bar Clearance
+   ========================================================================== */
+
+/* FIX 1: Prevent Text Truncation in Item Descriptions */
+.item-description-text,
+.liquid-glass p.line-clamp-1,
+.liquid-glass p.item-desc {
+  text-overflow: clip !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  height: auto !important;
+  max-height: initial !important;
+  display: block !important;
+  -webkit-line-clamp: initial !important;
+  -webkit-box-orient: unset !important;
+}
+
+/* FIX 2: Resolve Fixed Bottom Bar Overlap */
+.matrix-container,
+.main-content-scroll-padding {
+  padding-bottom: 220px !important;
+}

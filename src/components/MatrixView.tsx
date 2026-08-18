@@ -51,7 +51,7 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
     .filter(Boolean) as ZhuazhouItem[];
 
   return (
-    <div className="min-h-screen pb-36 pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative">
+    <div className="min-h-screen pb-56 sm:pb-60 pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative matrix-container">
       {/* Top Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
@@ -201,7 +201,7 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
                       {item.meaning}
                     </span>
                   </div>
-                  <p className="text-[11px] text-brown-muted mt-1 line-clamp-1 font-cute">
+                  <p className="text-[11px] text-brown-muted mt-1 font-cute item-description-text leading-relaxed">
                     {item.desc}
                   </p>
                 </div>
