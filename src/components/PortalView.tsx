@@ -35,9 +35,11 @@ export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerMo
   const handleChipClick = (prefix: string) => {
     setSelectedPrefix(prefix);
     const prefixRegex = /^(舅舅|阿嬤|阿公|爺爺|奶奶|姑姑|乾爹|姨婆|叔叔|乾媽|好友|堂哥|堂姐|表哥|表姐)\s*/;
-    if (!name.startsWith(prefix)) {
-      setName((prev) => `${prefix} ${prev.replace(prefixRegex, '')}`.trim());
-    }
+    setName((prev) => {
+      const cleanName = prev.replace(prefixRegex, '').trim();
+      return cleanName ? `${prefix} ${cleanName}` : prefix;
+    });
+    if (errorMsg) setErrorMsg('');
   };
 
   return (
@@ -156,12 +158,17 @@ export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerMo
           <div className="pt-3">
             <button
               type="submit"
-              className="w-full group relative py-4 px-8 rounded-2xl pastel-btn-primary font-heading font-black text-lg tracking-wider transition-all duration-300 flex items-center justify-center gap-3 active:scale-[0.98] cursor-pointer"
+              className="w-full group relative py-3.5 px-8 rounded-2xl pastel-btn-primary font-heading font-black tracking-wider transition-all duration-300 flex items-center justify-center gap-3 active:scale-[0.98] cursor-pointer shadow-md"
             >
-              <span>進入預測大典 (START PREDICTION)</span>
+              <div className="flex flex-col items-center justify-center leading-tight">
+                <span className="text-lg sm:text-xl font-black">進入預測大典</span>
+                <span className="text-[11px] sm:text-xs tracking-wider opacity-85 font-bold uppercase mt-0.5">
+                  START PREDICTION
+                </span>
+              </div>
               <ArrowRight
-                size={20}
-                className="transform group-hover:translate-x-1.5 transition-transform"
+                size={22}
+                className="transform group-hover:translate-x-1.5 transition-transform shrink-0"
               />
             </button>
           </div>

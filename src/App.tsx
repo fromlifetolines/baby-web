@@ -108,14 +108,10 @@ export const App: React.FC = () => {
     }
   }, [appMode]);
 
-  // Subscribe to real-time guesses & gameState with auto-purge on reset
+  // Subscribe to real-time guesses & gameState with reactive reset handling
   useEffect(() => {
     const unsubGuesses = subscribeToGuesses((updatedGuesses) => {
       setGuesses(updatedGuesses);
-      // Auto-purge if database was wiped clean while client was in session
-      if (updatedGuesses.length === 0 && (userName || userSelections.length > 0)) {
-        purgeClientSession();
-      }
     });
 
     const unsubGameState = subscribeToGameState((updatedGameState) => {
