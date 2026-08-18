@@ -53,7 +53,7 @@ export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerMo
         <div className="absolute bottom-0 left-0 w-40 h-40 bg-cream-200/50 rounded-full blur-3xl pointer-events-none" />
 
         {/* Baby Xing-Wei Cute Avatar */}
-        <div className="relative mx-auto mb-6 w-24 h-24 sm:w-28 sm:h-28">
+        <div className="relative mx-auto mb-6 w-32 h-32 sm:w-36 sm:h-36">
           <motion.div
             animate={{ rotate: [0, 4, -4, 0] }}
             transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }}
@@ -63,7 +63,7 @@ export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerMo
               <img
                 src={`${import.meta.env.BASE_URL}assets/baby/08.png`}
                 alt="Baby Xing-Wei"
-                className="w-20 h-20 sm:w-24 sm:h-24 object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
+                className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
                 onClick={onOpenStickerModal}
                 title="點擊查看專屬 LINE 貼圖"
               />

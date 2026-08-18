@@ -159,7 +159,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-4">
           {/* Baby Avatar Bubble (08.png) with soft glowing border */}
-          <div className="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0">
+          <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0">
             <motion.div
               animate={{ rotate: [0, 3, -3, 0] }}
               transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
