@@ -29,6 +29,12 @@ export const ZHUAZHOU_ITEMS: ZhuazhouItem[] = [
   { id: 'item_14', name: '波浪鼓', meaning: '自由業', iconPath: `${base}assets/items/drum.svg`, symbol: '🥁', category: 'Creative', desc: '無拘無束自由，樂活自在人生' },
   { id: 'item_15', name: '法槌', meaning: '法官律師', iconPath: `${base}assets/items/gavel.svg`, symbol: '⚖️', category: 'Justice', desc: '秉持公正法治，明辨是非公理' },
   { id: 'item_16', name: '積木', meaning: '工程師', iconPath: `${base}assets/items/blocks.svg`, symbol: '🏗️', category: 'Tech', desc: '巧手建構架構，打造未來世界' },
+  { id: 'item_17', name: '鍋鏟', meaning: '美饌料理家', iconPath: `${base}assets/items/spatula.svg`, symbol: '🍳', category: 'Culinary', desc: '烹調人生百味，成就頂級名廚' },
+  { id: 'item_18', name: '麥克風', meaning: '頂級演說家', iconPath: `${base}assets/items/microphone.svg`, symbol: '🎤', category: 'Media', desc: '聲動萬千聽眾，閃耀金曲巨星' },
+  { id: 'item_19', name: '聽診器', meaning: '仁心名醫', iconPath: `${base}assets/items/stethoscope.svg`, symbol: '🩺', category: 'Medical', desc: '妙手仁心濟世，守護世間健康' },
+  { id: 'item_20', name: '飛機', meaning: '王牌機師', iconPath: `${base}assets/items/airplane.svg`, symbol: '✈️', category: 'Adventure', desc: '翺翔浩瀚天際，環遊全球世界' },
+  { id: 'item_21', name: '電腦', meaning: '科技菁英', iconPath: `${base}assets/items/computer.svg`, symbol: '💻', category: 'Tech', desc: '引領數位浪潮，開創頂尖科技' },
+  { id: 'item_22', name: '導演板', meaning: '金獎導演', iconPath: `${base}assets/items/clapperboard.svg`, symbol: '🎬', category: 'Arts', desc: '掌鏡光影故事，榮獲世界大獎' },
 ];
 
 export const BABY_STICKERS = [

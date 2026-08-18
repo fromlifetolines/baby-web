@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+    <defs>
+        <radialGradient id="screenGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#1E293B"/>
+            <stop offset="100%" stop-color="#0F172A"/>
+        </radialGradient>
+        <filter id="laptopGlow"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#10B981" flood-opacity="0.6"/></filter>
+    </defs>
+    <!-- Screen Shell -->
+    <rect x="20" y="24" width="60" height="42" rx="6" fill="#334155" stroke="#10B981" stroke-width="2" filter="url(#laptopGlow)"/>
+    <!-- Screen Display -->
+    <rect x="24" y="28" width="52" height="34" rx="3" fill="url(#screenGrad)"/>
+    <!-- Code Editor UI Lines -->
+    <circle cx="28" cy="32" r="1.5" fill="#EF4444"/>
+    <circle cx="32" cy="32" r="1.5" fill="#F59E0B"/>
+    <circle cx="36" cy="32" r="1.5" fill="#10B981"/>
+    <!-- Code brackets & syntax -->
+    <text x="30" y="46" fill="#38BDF8" font-size="10" font-family="monospace" font-weight="bold">&lt;/&gt;</text>
+    <path d="M48 42 L68 42" stroke="#A7F3D0" stroke-width="2" stroke-linecap="round"/>
+    <path d="M48 48 L62 48" stroke="#FDE047" stroke-width="2" stroke-linecap="round"/>
+    <path d="M30 54 L52 54" stroke="#F472B6" stroke-width="2" stroke-linecap="round"/>
+    <!-- Laptop Base -->
+    <path d="M12 68 L88 68 L82 76 L18 76 Z" fill="#475569" stroke="#10B981" stroke-width="1.5"/>
+    <!-- Trackpad -->
+    <rect x="42" y="70" width="16" height="4" rx="1" fill="#64748B"/>
+</svg>

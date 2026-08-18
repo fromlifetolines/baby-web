@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+    <defs>
+        <filter id="stethGlow"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#38BDF8" flood-opacity="0.6"/></filter>
+    </defs>
+    <!-- Earpieces -->
+    <path d="M36 18 C36 14 44 14 44 26 L44 40 C44 48 56 48 56 40 L56 26 C56 14 64 14 64 18" stroke="#94A3B8" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <circle cx="36" cy="18" r="3.5" fill="#38BDF8"/>
+    <circle cx="64" cy="18" r="3.5" fill="#38BDF8"/>
+    <!-- Tubing -->
+    <path d="M50 44 L50 56 C50 68 34 68 34 80 C34 88 58 90 62 76 L62 72" stroke="#0284C7" stroke-width="4" stroke-linecap="round" fill="none" filter="url(#stethGlow)"/>
+    <!-- Chestpiece / Bell -->
+    <circle cx="62" cy="68" r="10" fill="#E2E8F0" stroke="#0284C7" stroke-width="2.5"/>
+    <circle cx="62" cy="68" r="6" fill="#38BDF8"/>
+    <circle cx="62" cy="68" r="2.5" fill="#FFFFFF"/>
+    <!-- Cute Red Heart -->
+    <path d="M72 44 C72 40 76 38 78 41 C80 38 84 40 84 44 C84 48 78 52 78 52 C78 52 72 48 72 44 Z" fill="#F43F5E"/>
+</svg>

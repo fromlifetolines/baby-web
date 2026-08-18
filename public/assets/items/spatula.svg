@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+    <defs>
+        <radialGradient id="panGrad" cx="45%" cy="45%" r="55%">
+            <stop offset="0%" stop-color="#4B5563"/>
+            <stop offset="100%" stop-color="#1F2937"/>
+        </radialGradient>
+        <filter id="spatulaGlow"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#FF6F61" flood-opacity="0.5"/></filter>
+    </defs>
+    <!-- Pan Base -->
+    <ellipse cx="50" cy="56" rx="28" ry="20" fill="url(#panGrad)" stroke="#FFB6C1" stroke-width="2" filter="url(#spatulaGlow)"/>
+    <ellipse cx="50" cy="56" rx="24" ry="16" fill="#374151" stroke="#9CA3AF" stroke-width="1"/>
+    <!-- Sunny Side Up Egg -->
+    <path d="M42 50 C46 46 54 48 58 52 C62 56 58 64 52 64 C44 64 40 56 42 50 Z" fill="#FFFFFF"/>
+    <circle cx="50" cy="55" r="6" fill="#F59E0B"/>
+    <!-- Spatula Head & Handle -->
+    <path d="M30 38 L42 26 L50 34 L38 46 Z" fill="#E5E7EB" stroke="#FF6F61" stroke-width="1.5"/>
+    <line x1="33" y1="35" x2="39" y2="41" stroke="#9CA3AF" stroke-width="1"/>
+    <line x1="36" y1="32" x2="42" y2="38" stroke="#9CA3AF" stroke-width="1"/>
+    <path d="M46 30 L68 12" stroke="#c68a4c" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="68" cy="12" r="3" fill="#FF6F61"/>
+</svg>

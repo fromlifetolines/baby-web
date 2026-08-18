@@ -96,7 +96,7 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
         <div className="flex items-center gap-2 text-sm text-brown-muted font-cute font-medium">
           <Heart size={16} className="text-pastel-coral fill-pastel-coral shrink-0" />
           <span>
-            請在 16 個品項中選取 <strong className="text-pastel-rose font-black">3 項</strong> 您認為星唯最有可能抓取的志業物品。
+            請在 {ZHUAZHOU_ITEMS.length} 個品項中選取 <strong className="text-pastel-rose font-black">3 項</strong> 您認為星唯最有可能抓取的志業物品。
           </span>
         </div>
         <div className="text-xs font-cute font-bold text-pastel-coral">
