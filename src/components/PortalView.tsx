@@ -96,8 +96,9 @@ export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerMo
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-black text-brown-text leading-tight tracking-tight">
             星唯 1 歲抓周預測大典
           </h1>
-          <p className="font-cute text-sm sm:text-base text-brown-muted font-medium pt-1">
-            請親朋好友精準預測星唯即將抓取的前 3 項志業 🎀
+          <p className="font-cute text-xs sm:text-sm md:text-base text-brown-muted font-medium pt-1 tracking-tight break-keep max-w-md mx-auto">
+            <span className="inline-block">請親朋好友精準預測</span>
+            <span className="inline-block">星唯即將抓取的前 3 項志業 🎀</span>
           </p>
         </div>
 
