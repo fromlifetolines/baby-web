@@ -161,9 +161,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* Baby Avatar Bubble (08.png) with soft glowing border */}
           <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0">
             <motion.div
-              animate={{ rotate: [0, 3, -3, 0] }}
-              transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
-              className="w-full h-full rounded-full p-1 bg-gradient-to-tr from-pastel-coral via-pastel-pink to-cream-200 shadow-soft-pink"
+              animate={{
+                rotate: [0, 3, -3, 0],
+                boxShadow: [
+                  '0px 0px 12px rgba(255, 182, 193, 0.4)',
+                  '0px 0px 35px rgba(255, 182, 193, 0.95), 0px 0px 20px rgba(255, 111, 97, 0.4)',
+                  '0px 0px 12px rgba(255, 182, 193, 0.4)',
+                ],
+              }}
+              transition={{
+                rotate: { repeat: Infinity, duration: 6, ease: 'easeInOut' },
+                boxShadow: { repeat: Infinity, duration: 2.2, ease: 'easeInOut' },
+              }}
+              className="w-full h-full rounded-full p-1 bg-gradient-to-tr from-pastel-coral via-pastel-pink to-cream-200"
             >
               <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-white shadow-inner">
                 <img
