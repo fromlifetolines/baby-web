@@ -20,46 +20,45 @@ export const RevealView: React.FC<RevealViewProps> = ({
   onOpenStickerModal,
   onResetGame,
 }) => {
-  const [countdown, setCountdown] = useState<number | null>(3);
+  // Pachinko FEVER 5-Second State Machine: 'gekiatsu' | 'spin' | 'slowdown' | 'jackpot' | null
+  const [pachinkoPhase, setPachinkoPhase] = useState<'gekiatsu' | 'spin' | 'slowdown' | 'jackpot' | null>('gekiatsu');
   const [isAnimationDone, setIsAnimationDone] = useState(false);
 
-  // Step 1: Cute 3-2-1 Bouncing Countdown
-  useEffect(() => {
-    let current = 3;
-    const interval = setInterval(() => {
-      current -= 1;
-      if (current >= 0) {
-        setCountdown(current);
-      } else {
-        clearInterval(interval);
-        setCountdown(null);
-        setIsAnimationDone(true);
-        triggerPastelConfetti();
-      }
-    }, 1000);
+  // High-speed slot reels item indexes
+  const [reelItem1, setReelItem1] = useState<ZhuazhouItem>(ZHUAZHOU_ITEMS[0]);
+  const [reelItem2, setReelItem2] = useState<ZhuazhouItem>(ZHUAZHOU_ITEMS[1]);
+  const [reelItem3, setReelItem3] = useState<ZhuazhouItem>(ZHUAZHOU_ITEMS[2]);
 
-    return () => clearInterval(interval);
-  }, []);
+  const actualItemData = useMemo(() => {
+    const items = (gameState.actualItems || [])
+      .map((id) => ZHUAZHOU_ITEMS.find((it) => it.id === id))
+      .filter(Boolean) as ZhuazhouItem[];
+    if (items.length < 3) {
+      const fallbackIds = ['item_09', 'item_16', 'item_01'];
+      return fallbackIds.map((id) => ZHUAZHOU_ITEMS.find((it) => it.id === id) || ZHUAZHOU_ITEMS[0]);
+    }
+    return items;
+  }, [gameState.actualItems]);
 
-  // Step 2: Massive Confetti Explosion (Pink, Gold, White, Rose)
+  // Massive Confetti Explosion (Gold, Red, Pink, White, Rose)
   const triggerPastelConfetti = () => {
     try {
-      const end = Date.now() + 4 * 1000;
-      const pastelColors = ['#FF6F61', '#FFB6C1', '#FFD700', '#FFFFFF', '#B76E79', '#FFE4E1'];
+      const end = Date.now() + 4.5 * 1000;
+      const pastelColors = ['#FFD700', '#FF6F61', '#FF0055', '#FFFFFF', '#FFB6C1', '#00FFCC', '#B76E79'];
 
       (function frame() {
         confetti({
-          particleCount: 8,
+          particleCount: 12,
           angle: 60,
-          spread: 65,
-          origin: { x: 0 },
+          spread: 75,
+          origin: { x: 0, y: 0.7 },
           colors: pastelColors,
         });
         confetti({
-          particleCount: 8,
+          particleCount: 12,
           angle: 120,
-          spread: 65,
-          origin: { x: 1 },
+          spread: 75,
+          origin: { x: 1, y: 0.7 },
           colors: pastelColors,
         });
 
@@ -72,9 +71,84 @@ export const RevealView: React.FC<RevealViewProps> = ({
     }
   };
 
-  const actualItemData = (gameState.actualItems || [])
-    .map((id) => ZHUAZHOU_ITEMS.find((it) => it.id === id))
-    .filter(Boolean) as ZhuazhouItem[];
+  // Start 5000ms Pachinko FEVER Timeline
+  const startPachinkoAnimation = () => {
+    setPachinkoPhase('gekiatsu');
+    setIsAnimationDone(false);
+
+    // 0ms ~ 1000ms: Phase 1 (激熱預告)
+    const t1 = setTimeout(() => {
+      setPachinkoPhase('spin');
+    }, 1000);
+
+    // 1000ms ~ 3200ms: Phase 2 (高速柏青哥滾輪)
+    const t2 = setTimeout(() => {
+      setPachinkoPhase('slowdown');
+    }, 3200);
+
+    // 3200ms ~ 4200ms: Phase 3 (減速煞停與全螢幕大震動)
+    const t3 = setTimeout(() => {
+      setPachinkoPhase('jackpot');
+      triggerPastelConfetti();
+    }, 4200);
+
+    // 4200ms ~ 5300ms: Phase 4 (JACKPOT 大當選定格爆發 -> 切入完整榜單)
+    const t4 = setTimeout(() => {
+      setPachinkoPhase(null);
+      setIsAnimationDone(true);
+    }, 5300);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+    };
+  };
+
+  useEffect(() => {
+    const cleanup = startPachinkoAnimation();
+    return cleanup;
+  }, []);
+
+  // Rapidly cycle items during 'spin' (40ms) and 'slowdown' (100ms)
+  useEffect(() => {
+    if (pachinkoPhase === 'spin' || pachinkoPhase === 'slowdown') {
+      const intervalSpeed = pachinkoPhase === 'spin' ? 40 : 110;
+      let idx1 = Math.floor(Math.random() * ZHUAZHOU_ITEMS.length);
+      let idx2 = Math.floor(Math.random() * ZHUAZHOU_ITEMS.length);
+      let idx3 = Math.floor(Math.random() * ZHUAZHOU_ITEMS.length);
+
+      const interval = setInterval(() => {
+        if (pachinkoPhase === 'slowdown') {
+          // Snap progressively toward the actual items
+          setReelItem1(actualItemData[0] || ZHUAZHOU_ITEMS[0]);
+          setReelItem2(actualItemData[1] || ZHUAZHOU_ITEMS[1]);
+          setReelItem3(actualItemData[2] || ZHUAZHOU_ITEMS[2]);
+        } else {
+          idx1 = (idx1 + 1) % ZHUAZHOU_ITEMS.length;
+          idx2 = (idx2 + 2) % ZHUAZHOU_ITEMS.length;
+          idx3 = (idx3 + 3) % ZHUAZHOU_ITEMS.length;
+          setReelItem1(ZHUAZHOU_ITEMS[idx1]);
+          setReelItem2(ZHUAZHOU_ITEMS[idx2]);
+          setReelItem3(ZHUAZHOU_ITEMS[idx3]);
+        }
+      }, intervalSpeed);
+
+      return () => clearInterval(interval);
+    } else if (pachinkoPhase === 'jackpot') {
+      setReelItem1(actualItemData[0] || ZHUAZHOU_ITEMS[0]);
+      setReelItem2(actualItemData[1] || ZHUAZHOU_ITEMS[1]);
+      setReelItem3(actualItemData[2] || ZHUAZHOU_ITEMS[2]);
+    }
+  }, [pachinkoPhase, actualItemData]);
+
+  // Fast skip to full results
+  const handleSkipAnimation = () => {
+    setPachinkoPhase(null);
+    setIsAnimationDone(true);
+    triggerPastelConfetti();
+  };
 
   // Step 4: Strict Intersection Scoring
   const { champions, runnersUp, thirdPlaces, participants, currentUserResult } = useMemo(() => {
@@ -113,31 +187,174 @@ export const RevealView: React.FC<RevealViewProps> = ({
 
   return (
     <div className="min-h-screen pb-24 pt-6 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto relative">
-      {/* 3-2-1 Bouncing Countdown Overlay */}
+      {/* Japanese Pachinko FEVER 5-Second Jackpot Animation Overlay */}
       <AnimatePresence>
-        {countdown !== null && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-[#FFFAF0]/95 backdrop-blur-2xl flex flex-col items-center justify-center text-center p-6"
+        {pachinkoPhase !== null && (
+          <div
+            className={`fixed inset-0 z-50 overflow-hidden flex items-center justify-center select-none ${
+              pachinkoPhase === 'slowdown' ? 'animate-pachinko-shake' : ''
+            }`}
           >
-            <motion.div
-              key={countdown}
-              initial={{ scale: 2.2, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.6, opacity: 0 }}
-              transition={{ type: 'spring', damping: 15, stiffness: 200 }}
-              className="relative"
+            {/* Skip Button */}
+            <button
+              onClick={handleSkipAnimation}
+              className="absolute top-5 right-5 z-50 px-4 py-2 rounded-full bg-white/20 hover:bg-white/35 text-white font-cute font-bold text-xs sm:text-sm backdrop-blur-md border border-white/40 shadow-xl cursor-pointer transition-all flex items-center gap-1.5"
             >
-              <span className="font-heading text-[120px] sm:text-[180px] leading-none font-black text-pastel-coral drop-shadow-xl select-none block">
-                {countdown === 0 ? '🎉' : countdown}
-              </span>
-              <p className="font-heading text-2xl sm:text-4xl font-bold text-brown-text mt-4">
-                星唯抓周結果揭曉中... 🎀
-              </p>
-            </motion.div>
-          </motion.div>
+              <span>跳過動畫 (SKIP)</span>
+              <span>⏭️</span>
+            </button>
+
+            {/* PHASE 1: 激熱預告 (0ms ~ 1000ms) */}
+            {pachinkoPhase === 'gekiatsu' && (
+              <div className="absolute inset-0 bg-gradient-to-b from-black via-rose-950 to-black flex flex-col items-center justify-center text-center p-6 z-10">
+                {/* High frequency strobe flash background */}
+                <div className="absolute inset-0 bg-radial from-amber-500/20 via-rose-600/25 to-transparent animate-strobe pointer-events-none" />
+
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative z-20 flex flex-col items-center"
+                >
+                  <span className="px-5 py-1.5 rounded-full bg-rose-600/90 text-amber-200 border-2 border-amber-300 font-heading font-black text-sm sm:text-lg tracking-widest shadow-lg mb-6 uppercase animate-pulse">
+                    🔥 超 絕 演 出 · 激 熱 預 告 🔥
+                  </span>
+
+                  {/* Impact text with animate-gekiatsu */}
+                  <div className="animate-gekiatsu my-2">
+                    <h1 className="font-heading font-black text-7xl sm:text-9xl md:text-[140px] leading-none tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-[#FFF59D] via-[#FFD700] to-[#FF0055] drop-shadow-[0_12px_35px_rgba(255,0,85,0.95)]">
+                      激 熱 ！！
+                    </h1>
+                  </div>
+
+                  <p className="font-heading font-black text-2xl sm:text-4xl md:text-5xl text-amber-300 tracking-widest drop-shadow-[0_0_20px_#FFD700] mt-6">
+                    ⚡️ 天 選 志 業 確 定 ⚡️
+                  </p>
+                </motion.div>
+              </div>
+            )}
+
+            {/* PHASE 2 & 3: 高速柏青哥滾輪 & 減速煞停大震動 (1000ms ~ 4200ms) */}
+            {(pachinkoPhase === 'spin' || pachinkoPhase === 'slowdown') && (
+              <div className="absolute inset-0 bg-gradient-to-b from-[#0A0012] via-[#1E052B] to-[#0A0012] flex flex-col items-center justify-center p-4 sm:p-6 z-10">
+                <div className="rainbow-neon-box p-6 sm:p-8 rounded-[36px] bg-black/85 backdrop-blur-2xl border-4 max-w-4xl w-full mx-auto text-center relative shadow-2xl">
+                  {/* Machine Header */}
+                  <div className="mb-4">
+                    {pachinkoPhase === 'spin' ? (
+                      <span className="inline-block font-heading font-black text-xl sm:text-3xl text-amber-300 animate-pulse tracking-wider drop-shadow-[0_0_15px_#FFD700]">
+                        🎰 星唯抓周 PACHINKO FEVER 777 🎰
+                      </span>
+                    ) : (
+                      <span className="inline-block font-heading font-black text-xl sm:text-3xl text-rose-400 animate-bounce tracking-widest drop-shadow-[0_0_20px_#FF0055]">
+                        🚨 大當選 倒數確定... REACH!! 🚨
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 3 Slot Reels Display */}
+                  <div className="grid grid-cols-3 gap-3 sm:gap-6 my-6">
+                    {[
+                      { item: reelItem1, rank: '第 1 順位', medal: '🥇' },
+                      { item: reelItem2, rank: '第 2 順位', medal: '🥈' },
+                      { item: reelItem3, rank: '第 3 順位', medal: '🥉' },
+                    ].map((reel, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-3 sm:p-5 rounded-3xl bg-gradient-to-b from-gray-900 via-gray-800 to-black border-2 sm:border-3 ${
+                          pachinkoPhase === 'slowdown'
+                            ? 'border-amber-400 shadow-[0_0_30px_rgba(255,215,0,0.6)]'
+                            : 'border-cyan-400/80 shadow-inner'
+                        } flex flex-col items-center justify-between h-56 sm:h-72 relative overflow-hidden transition-all`}
+                      >
+                        {/* Top Rank Badge */}
+                        <div className="w-full flex items-center justify-center gap-1 py-1 rounded-xl bg-white/10 border border-white/20 text-xs sm:text-sm font-heading font-black text-amber-300">
+                          <span>{reel.medal}</span>
+                          <span>{reel.rank}</span>
+                        </div>
+
+                        {/* Slot Item Icon */}
+                        <div className="my-auto flex flex-col items-center justify-center">
+                          <div className="w-20 h-20 sm:w-28 sm:h-28 p-2 rounded-2xl bg-white/95 border-2 border-amber-300 flex items-center justify-center shadow-lg transform transition-transform">
+                            <img
+                              src={reel.item.iconPath}
+                              alt={reel.item.name}
+                              className="w-full h-full object-contain drop-shadow-md"
+                            />
+                          </div>
+                          <h3 className="font-heading font-black text-lg sm:text-2xl text-white mt-2 drop-shadow-md">
+                            {reel.item.name}
+                          </h3>
+                        </div>
+
+                        {/* Bottom Tag */}
+                        <span className="text-[10px] sm:text-xs font-cute text-amber-200 font-bold tracking-wider">
+                          {reel.item.meaning}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Status Bar */}
+                  <div className="text-xs sm:text-sm font-cute font-bold text-gray-300 flex items-center justify-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
+                    <span>22 項志業高速旋轉中 · 命定結果即將定格</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PHASE 4: JACKPOT 大當選定格爆發 (4200ms ~ 5300ms) */}
+            {pachinkoPhase === 'jackpot' && (
+              <div className="absolute inset-0 bg-gradient-to-b from-[#160024] via-[#2F0042] to-[#160024] flex flex-col items-center justify-center p-4 sm:p-6 z-10 overflow-hidden">
+                {/* Rotating Sunburst Rays Background */}
+                <div className="sunburst-bg animate-sunburst absolute inset-[-50%] w-[200%] h-[200%] opacity-65 pointer-events-none" />
+
+                <motion.div
+                  initial={{ scale: 1.25, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', damping: 14, stiffness: 180 }}
+                  className="relative z-20 max-w-4xl w-full text-center flex flex-col items-center"
+                >
+                  <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-amber-400 text-amber-950 font-heading font-black text-sm sm:text-lg shadow-xl mb-4 border-2 border-white animate-bounce">
+                    <span>👑 FEVER MAXIMUM 👑</span>
+                  </div>
+
+                  <h1 className="font-heading font-black text-4xl sm:text-6xl md:text-7xl text-transparent bg-clip-text bg-gradient-to-b from-[#FFF9C4] via-[#FFD700] to-[#FF6F61] drop-shadow-[0_10px_30px_rgba(255,215,0,0.8)] leading-tight mb-2">
+                    🎊 大當選 JACKPOT 確定！！ 🎊
+                  </h1>
+                  <p className="font-cute text-sm sm:text-xl text-amber-200 font-bold mb-6">
+                    ✨ 星唯抓周三大天選志業 震撼定格揭曉 ✨
+                  </p>
+
+                  {/* 3 Winning Items Impact Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 w-full mb-4">
+                    {actualItemData.slice(0, 3).map((item, idx) => (
+                      <motion.div
+                        key={item.id}
+                        initial={{ scale: 0.7, y: 30 }}
+                        animate={{ scale: 1, y: 0 }}
+                        transition={{ delay: idx * 0.15 }}
+                        className="p-5 sm:p-6 rounded-[28px] bg-white/95 border-3 border-amber-400 shadow-[0_0_30px_rgba(255,215,0,0.5)] text-center relative overflow-hidden"
+                      >
+                        <div className="inline-block px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 text-white font-heading font-black text-xs shadow-md mb-3">
+                          第 {idx + 1} 順位
+                        </div>
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-2 p-2 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center shadow-inner">
+                          <img src={item.iconPath} alt={item.name} className="w-full h-full object-contain" />
+                        </div>
+                        <h3 className="font-heading font-black text-xl sm:text-2xl text-brown-text">
+                          {item.name}
+                        </h3>
+                        <p className="font-heading font-bold text-sm sm:text-base text-pastel-coral">
+                          {item.meaning}
+                        </p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </div>
         )}
       </AnimatePresence>
 
@@ -150,14 +367,25 @@ export const RevealView: React.FC<RevealViewProps> = ({
         >
           {/* Header */}
           <div className="text-center mb-10">
-            <motion.div
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blush-100 border border-blush-200 text-pastel-rose text-xs font-bold font-cute mb-3 shadow-sm"
-            >
-              <PartyPopper size={16} />
-              <span>THE GRAND REVEAL COMPLETE</span>
-            </motion.div>
+            <div className="flex flex-wrap items-center justify-center gap-3 mb-3">
+              <motion.div
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blush-100 border border-blush-200 text-pastel-rose text-xs font-bold font-cute shadow-sm"
+              >
+                <PartyPopper size={16} />
+                <span>THE GRAND REVEAL COMPLETE</span>
+              </motion.div>
+
+              {/* Replay Pachinko Animation Button */}
+              <button
+                onClick={startPachinkoAnimation}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 text-white font-heading font-black text-xs shadow-md hover:scale-105 transition-transform cursor-pointer"
+                title="再次觀賞 5 秒柏青哥開獎動效"
+              >
+                <span>🎰 重播開獎動畫</span>
+              </button>
+            </div>
             <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl font-black text-brown-text leading-tight">
               星唯抓周結果大揭曉！ 🌸
             </h1>

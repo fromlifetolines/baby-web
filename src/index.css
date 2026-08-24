@@ -103,3 +103,79 @@
 .main-content-scroll-padding {
   padding-bottom: 220px !important;
 }
+
+/* ==========================================================================
+   Japanese Pachinko FEVER Reveal Animations
+   ========================================================================== */
+
+/* 柏青哥全螢幕劇烈震動 */
+@keyframes pachinko-screen-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  10% { transform: translate(-8px, -6px) rotate(-1deg); }
+  20% { transform: translate(8px, 6px) rotate(1.5deg); }
+  30% { transform: translate(-10px, 4px) rotate(-1.5deg); }
+  40% { transform: translate(10px, -4px) rotate(1deg); }
+  50% { transform: translate(-6px, 8px) rotate(-1deg); }
+  60% { transform: translate(6px, -8px) rotate(1deg); }
+  70% { transform: translate(-8px, 6px) rotate(-0.5deg); }
+  80% { transform: translate(8px, -6px) rotate(0.5deg); }
+  90% { transform: translate(-4px, 2px) rotate(0deg); }
+}
+
+/* 激熱字樣撞擊放大 */
+@keyframes gekiatsu-impact {
+  0% { transform: scale(3) rotate(-12deg); opacity: 0; filter: blur(10px); }
+  50% { transform: scale(0.9) rotate(-12deg); opacity: 1; filter: blur(0); }
+  70% { transform: scale(1.1) rotate(-12deg); }
+  100% { transform: scale(1) rotate(-12deg); opacity: 1; }
+}
+
+/* 背景旋轉放射光芒 (Sunburst Rays) */
+@keyframes sunburst-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 彩虹霓虹跑馬燈邊框 */
+@keyframes rainbow-border {
+  0% { border-color: #ff0055; box-shadow: 0 0 30px #ff0055, inset 0 0 15px #ff0055; }
+  25% { border-color: #ffcc00; box-shadow: 0 0 30px #ffcc00, inset 0 0 15px #ffcc00; }
+  50% { border-color: #00ffcc; box-shadow: 0 0 30px #00ffcc, inset 0 0 15px #00ffcc; }
+  75% { border-color: #9900ff; box-shadow: 0 0 30px #9900ff, inset 0 0 15px #9900ff; }
+  100% { border-color: #ff0055; box-shadow: 0 0 30px #ff0055, inset 0 0 15px #ff0055; }
+}
+
+/* 閃頻高能特效 */
+@keyframes strobe-pulse {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.85; }
+}
+
+.animate-pachinko-shake {
+  animation: pachinko-screen-shake 0.12s infinite;
+}
+
+.animate-gekiatsu {
+  animation: gekiatsu-impact 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.animate-sunburst {
+  animation: sunburst-spin 12s linear infinite;
+}
+
+.rainbow-neon-box {
+  animation: rainbow-border 0.8s linear infinite;
+}
+
+.animate-strobe {
+  animation: strobe-pulse 0.08s infinite;
+}
+
+.sunburst-bg {
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 215, 0, 0.45) 0deg 15deg,
+    rgba(255, 111, 97, 0.2) 15deg 30deg
+  );
+}
+
