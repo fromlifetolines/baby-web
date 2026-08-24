@@ -193,13 +193,19 @@ export const App: React.FC = () => {
     purgeClientSession();
   };
 
+  const isRevealActive = gameState.isRevealed || view === 'reveal';
+
   return (
-    <div className="relative min-h-screen text-brown-text overflow-x-hidden font-body select-none">
-      {/* Background Soft Pastel Blobs & Sparkles */}
-      <BackgroundPastel />
+    <div className={`relative min-h-screen ${isRevealActive ? 'bg-[#0a0012] text-white' : 'text-brown-text'} overflow-x-hidden font-body select-none transition-colors duration-500`}>
+      {/* Background Soft Pastel Blobs & Sparkles (Only for pre-reveal views) */}
+      {!isRevealActive && <BackgroundPastel />}
 
       {/* Top Navbar */}
-      <header className="relative z-30 px-4 sm:px-8 py-3.5 flex items-center justify-between border-b border-blush-200/80 bg-white/70 backdrop-blur-md">
+      <header className={`relative z-30 px-4 sm:px-8 py-3.5 flex items-center justify-between border-b ${
+        isRevealActive
+          ? 'border-amber-400/25 bg-black/60 backdrop-blur-xl text-white'
+          : 'border-blush-200/80 bg-white/70 backdrop-blur-md'
+      }`}>
         <div 
           onClick={() => {
             if (appMode === 'projector') {
@@ -215,10 +221,10 @@ export const App: React.FC = () => {
             1
           </div>
           <div>
-            <span className="font-heading text-lg sm:text-xl font-black text-brown-text block leading-none">
+            <span className={`font-heading text-lg sm:text-xl font-black ${isRevealActive ? 'text-amber-300' : 'text-brown-text'} block leading-none`}>
               星唯 1 歲生日抓周
             </span>
-            <span className="text-[11px] text-pastel-rose font-cute font-bold tracking-wider uppercase">
+            <span className={`text-[11px] ${isRevealActive ? 'text-amber-200/80' : 'text-pastel-rose'} font-cute font-bold tracking-wider uppercase`}>
               Xing-Wei's 1st Birthday
             </span>
           </div>
@@ -228,33 +234,41 @@ export const App: React.FC = () => {
           {appMode === 'projector' ? (
             <button
               onClick={() => setAppMode('guest')}
-              className="px-3.5 py-2 rounded-2xl liquid-glass text-xs font-cute font-bold text-brown-text hover:border-pastel-coral flex items-center gap-1.5 shadow-sm"
+              className={`px-3.5 py-2 rounded-2xl ${
+                isRevealActive ? 'bg-white/15 text-white border border-white/20' : 'liquid-glass text-brown-text'
+              } text-xs font-cute font-bold hover:border-pastel-coral flex items-center gap-1.5 shadow-sm cursor-pointer`}
             >
-              <Home size={14} className="text-pastel-coral" />
+              <Home size={14} className={isRevealActive ? 'text-amber-300' : 'text-pastel-coral'} />
               <span>切換回賓客預測</span>
             </button>
           ) : (
             <button
               onClick={() => setAppMode('projector')}
-              className="px-3.5 py-2 rounded-2xl liquid-glass text-xs font-cute font-bold text-brown-text hover:border-pastel-coral hidden sm:flex items-center gap-1.5 shadow-sm"
+              className={`px-3.5 py-2 rounded-2xl ${
+                isRevealActive ? 'bg-white/15 text-white border border-white/20' : 'liquid-glass text-brown-text'
+              } text-xs font-cute font-bold hover:border-pastel-coral hidden sm:flex items-center gap-1.5 shadow-sm cursor-pointer`}
             >
-              <Monitor size={14} className="text-pastel-rose" />
+              <Monitor size={14} className={isRevealActive ? 'text-amber-300' : 'text-pastel-rose'} />
               <span>大螢幕投影</span>
             </button>
           )}
 
           <button
             onClick={() => setIsStickerModalOpen(true)}
-            className="px-3.5 py-2 rounded-2xl liquid-glass text-xs font-cute font-bold text-brown-text hover:border-pastel-coral hidden sm:flex items-center gap-1.5 shadow-sm"
+            className={`px-3.5 py-2 rounded-2xl ${
+              isRevealActive ? 'bg-white/15 text-white border border-white/20' : 'liquid-glass text-brown-text'
+            } text-xs font-cute font-bold hover:border-pastel-coral hidden sm:flex items-center gap-1.5 shadow-sm cursor-pointer`}
           >
-            <Sparkles size={14} className="text-pastel-coral" />
+            <Sparkles size={14} className={isRevealActive ? 'text-amber-300' : 'text-pastel-coral'} />
             <span>限定貼圖</span>
           </button>
 
           {/* Admin Lock Button */}
           <button
             onClick={() => setIsAdminOpen(true)}
-            className="p-2.5 rounded-2xl liquid-glass text-brown-muted hover:text-pastel-coral hover:border-pastel-coral transition-all shadow-sm"
+            className={`p-2.5 rounded-2xl ${
+              isRevealActive ? 'bg-white/15 text-amber-300 border border-white/20' : 'liquid-glass text-brown-muted hover:text-pastel-coral'
+            } hover:border-pastel-coral transition-all shadow-sm cursor-pointer`}
             title="主持人後台 (Admin Panel)"
           >
             <Settings size={18} />
