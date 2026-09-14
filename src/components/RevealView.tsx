@@ -31,16 +31,21 @@ export const RevealView: React.FC<RevealViewProps> = ({
   const [reelItem2, setReelItem2] = useState<ZhuazhouItem>(ZHUAZHOU_ITEMS[1]);
   const [reelItem3, setReelItem3] = useState<ZhuazhouItem>(ZHUAZHOU_ITEMS[2]);
 
+  const allPool = useMemo(() => {
+    const customs = partyConfig?.customItems || [];
+    return [...ZHUAZHOU_ITEMS, ...customs];
+  }, [partyConfig?.customItems]);
+
   const actualItemData = useMemo(() => {
     const items = (gameState.actualItems || [])
-      .map((id) => ZHUAZHOU_ITEMS.find((it) => it.id === id))
-      .filter(Boolean) as ZhuazhouItem[];
+      .map((id) => allPool.find((it) => it.id === id))
+      .filter(Boolean) as (ZhuazhouItem | any)[];
     if (items.length < 3) {
       const fallbackIds = ['item_09', 'item_16', 'item_01'];
-      return fallbackIds.map((id) => ZHUAZHOU_ITEMS.find((it) => it.id === id) || ZHUAZHOU_ITEMS[0]);
+      return fallbackIds.map((id) => allPool.find((it) => it.id === id) || ZHUAZHOU_ITEMS[0]);
     }
     return items;
-  }, [gameState.actualItems]);
+  }, [gameState.actualItems, allPool]);
 
   // Massive Confetti Explosion (Gold, Red, Pink, White, Rose)
   const triggerPastelConfetti = () => {
@@ -422,7 +427,11 @@ export const RevealView: React.FC<RevealViewProps> = ({
                 {/* Item Icon Box */}
                 <div className="my-3 flex items-center justify-center">
                   <div className="w-24 h-24 sm:w-28 sm:h-28 p-3 rounded-2xl bg-gradient-to-b from-amber-50 to-orange-50 border-2 border-amber-200 flex items-center justify-center shadow-inner">
-                    <img src={item.iconPath} alt={item.name} className="w-full h-full object-contain drop-shadow-sm" />
+                    {item.iconPath ? (
+                      <img src={item.iconPath} alt={item.name} className="w-full h-full object-contain drop-shadow-sm" />
+                    ) : (
+                      <span className="text-5xl select-none">{item.symbol || '🎁'}</span>
+                    )}
                   </div>
                 </div>
 

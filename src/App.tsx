@@ -223,11 +223,23 @@ export const App: React.FC = () => {
 
   const isRevealActive = gameState.isRevealed || view === 'reveal';
   const babyName = partyConfig.babyName || '星唯';
+  const themeColor = partyConfig.themeColor || 'gold-dark';
+
+  // Theme text styling helper for main frame
+  const themeClass = isRevealActive 
+    ? 'bg-[#0a0012] text-white' 
+    : themeColor === 'gold-dark'
+    ? 'bg-[#0A0503] text-amber-100'
+    : themeColor === 'blush-pink'
+    ? 'bg-[#FFF5F7] text-brown-text'
+    : themeColor === 'baby-blue'
+    ? 'bg-[#F0F9FF] text-slate-800'
+    : 'bg-[#FAF7F2] text-[#4A3B32]';
 
   return (
-    <div className={`relative min-h-screen ${isRevealActive ? 'bg-[#0a0012] text-white' : 'text-brown-text'} overflow-x-hidden font-body select-none transition-colors duration-500`}>
-      {/* Background Soft Pastel Blobs & Sparkles (Only for pre-reveal views) */}
-      {!isRevealActive && <BackgroundPastel />}
+    <div className={`relative min-h-screen ${themeClass} overflow-x-hidden font-body select-none transition-colors duration-700`}>
+      {/* Dynamic Background with Atmospheric Theme Blobs & Sparkles */}
+      {!isRevealActive && <BackgroundPastel theme={themeColor} />}
 
       {/* Top Navbar */}
       <header className={`relative z-30 px-4 sm:px-8 py-3.5 flex items-center justify-between border-b ${
@@ -380,6 +392,7 @@ export const App: React.FC = () => {
         onResetAllData={handleResetAllData}
         onOpenCustomizer={() => setIsCustomizerOpen(true)}
         initialUnlocked={adminPreUnlocked}
+        partyConfig={partyConfig}
       />
 
       <PartyCustomizerModal

@@ -25,13 +25,18 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
 
   const babyName = partyConfig?.babyName || '星唯';
 
-  // Filter items based on host customization in partyConfig.activeItemIds
+  // Combine builtin items + custom items, then filter by activeItemIds
+  const allPool = useMemo(() => {
+    const customs = partyConfig?.customItems || [];
+    return [...ZHUAZHOU_ITEMS, ...customs];
+  }, [partyConfig?.customItems]);
+
   const displayItems = useMemo(() => {
     if (!partyConfig?.activeItemIds || partyConfig.activeItemIds.length === 0) {
-      return ZHUAZHOU_ITEMS;
+      return allPool;
     }
-    return ZHUAZHOU_ITEMS.filter((item) => partyConfig.activeItemIds.includes(item.id));
-  }, [partyConfig?.activeItemIds]);
+    return allPool.filter((item) => partyConfig.activeItemIds.includes(item.id));
+  }, [allPool, partyConfig?.activeItemIds]);
 
   const toggleSelection = (id: string) => {
     setErrorMessage(null);
@@ -60,8 +65,8 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
   };
 
   const selectedItemsData = selectedIds
-    .map((id) => displayItems.find((item) => item.id === id) || ZHUAZHOU_ITEMS.find((it) => it.id === id))
-    .filter(Boolean) as ZhuazhouItem[];
+    .map((id) => allPool.find((item) => item.id === id))
+    .filter(Boolean);
 
   return (
     <div className="min-h-screen pb-56 sm:pb-60 pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative matrix-container">
@@ -192,11 +197,15 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
                         : 'group-hover:scale-105 opacity-85'
                     }`}
                   >
-                    <img
-                      src={item.iconPath}
-                      alt={item.name}
-                      className="w-full h-full object-contain"
-                    />
+                    {item.iconPath ? (
+                      <img
+                        src={item.iconPath}
+                        alt={item.name}
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <span className="text-4xl sm:text-5xl select-none">{item.symbol || '🎁'}</span>
+                    )}
                   </div>
                 </div>
 

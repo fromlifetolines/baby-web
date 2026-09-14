@@ -72,7 +72,14 @@ export const PartyCustomizerModal: React.FC<PartyCustomizerModalProps> = ({
   const [babyAvatar, setBabyAvatar] = useState(config.babyAvatar || '');
   const [themeColor, setThemeColor] = useState<ThemeStyle>(config.themeColor || 'gold-dark');
   const [activeItemIds, setActiveItemIds] = useState<string[]>(config.activeItemIds || ZHUAZHOU_ITEMS.map((i) => i.id));
+  const [customItems, setCustomItems] = useState<CustomZhuazhouItem[]>(config.customItems || []);
   
+  // New Custom Item Form Inputs
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemMeaning, setNewItemMeaning] = useState('');
+  const [newItemDesc, setNewItemDesc] = useState('');
+  const [newItemSymbol, setNewItemSymbol] = useState('🎁');
+
   // Prize states
   const [prizeEnabled, setPrizeEnabled] = useState(config.prize?.enabled ?? true);
   const [prizeTitle, setPrizeTitle] = useState(config.prize?.title || '星唯專屬 LINE 貼圖包 & 精美神秘好禮');
@@ -81,6 +88,28 @@ export const PartyCustomizerModal: React.FC<PartyCustomizerModalProps> = ({
 
   const [isSaving, setIsSaving] = useState(false);
   const [copiedType, setCopiedType] = useState<'guest' | 'projector' | null>(null);
+
+  // Sync internal state when config prop updates or modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setRoomId(config.roomId || 'xingwei');
+      setBabyName(config.babyName || '星唯');
+      setSubtitle(config.subtitle || '');
+      setBabyAvatar(config.babyAvatar || '');
+      setThemeColor(config.themeColor || 'gold-dark');
+      setActiveItemIds(config.activeItemIds || ZHUAZHOU_ITEMS.map((i) => i.id));
+      setCustomItems(config.customItems || []);
+      setPrizeEnabled(config.prize?.enabled ?? true);
+      setPrizeTitle(config.prize?.title || '星唯專屬 LINE 貼圖包 & 精美神秘好禮');
+      setPrizeDesc(config.prize?.description || '預測成功猜中前 3 項的貴賓，可獲得專屬大獎！');
+      setPrizeClaimNote(config.prize?.claimedNote || '活動結束後請憑手機獲獎畫面，向現場爸媽領取禮品！');
+    }
+  }, [isOpen, config]);
+
+  // Combined Items (Builtin 22 + User Custom Items)
+  const allAvailableItems = React.useMemo(() => {
+    return [...ZHUAZHOU_ITEMS, ...customItems];
+  }, [customItems]);
 
   // Toggle item selection
   const handleToggleItem = (itemId: string) => {
@@ -96,7 +125,40 @@ export const PartyCustomizerModal: React.FC<PartyCustomizerModalProps> = ({
   };
 
   const handleSelectAll = () => {
-    setActiveItemIds(ZHUAZHOU_ITEMS.map((i) => i.id));
+    setActiveItemIds(allAvailableItems.map((i) => i.id));
+  };
+
+  // Add a newly typed custom item
+  const handleAddCustomItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newItemName.trim() || !newItemMeaning.trim()) {
+      alert('請填寫物品名稱與志業象徵！');
+      return;
+    }
+
+    const newId = `custom_${Date.now()}`;
+    const created: CustomZhuazhouItem = {
+      id: newId,
+      name: newItemName.trim(),
+      meaning: newItemMeaning.trim(),
+      symbol: newItemSymbol || '🎁',
+      category: '創意自訂',
+      desc: newItemDesc.trim() || `${newItemMeaning.trim()}，展翅高飛！`,
+      iconPath: `${import.meta.env.BASE_URL || '/'}assets/items/stamp.svg`,
+      isCustom: true,
+    };
+
+    setCustomItems([...customItems, created]);
+    setActiveItemIds([...activeItemIds, newId]);
+    setNewItemName('');
+    setNewItemMeaning('');
+    setNewItemDesc('');
+  };
+
+  // Delete a custom item
+  const handleDeleteCustomItem = (itemId: string) => {
+    setCustomItems(customItems.filter((it) => it.id !== itemId));
+    setActiveItemIds(activeItemIds.filter((id) => id !== itemId));
   };
 
   // Image Upload helper
@@ -128,6 +190,7 @@ export const PartyCustomizerModal: React.FC<PartyCustomizerModalProps> = ({
         babyAvatar,
         themeColor,
         activeItemIds,
+        customItems,
         prize: {
           enabled: prizeEnabled,
           title: prizeTitle,
@@ -399,46 +462,113 @@ export const PartyCustomizerModal: React.FC<PartyCustomizerModalProps> = ({
                 </div>
               )}
 
-              {/* TAB 3: ZHUAZHOU ITEMS SELECTION */}
+              {/* TAB 3: ZHUAZHOU ITEMS SELECTION & CUSTOM ITEMS */}
               {activeTab === 'items' && (
-                <div className="space-y-4">
+                <div className="space-y-6">
+                  {/* Top Bar: Count & Select All */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
                     <div>
                       <h4 className="font-heading text-sm font-black text-amber-300">
-                        道具勾選庫：當前已啟用 {activeItemIds.length} / 22 項
+                        道具勾選庫：當前已啟用 {activeItemIds.length} / {allAvailableItems.length} 項
                       </h4>
                       <p className="text-xs text-white/60">
-                        您可以依據當天現場準備的道具，點擊勾選或取消，未勾選的品項不會出現在賓客投票選項中。
+                        您可以勾選啟用當天準備的道具，或在下方自行輸入創意道具！未勾選的品項不會出現在賓客投票選項中。
                       </p>
                     </div>
 
                     <button
                       onClick={handleSelectAll}
-                      className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all shrink-0"
+                      className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all shrink-0 cursor-pointer"
                     >
-                      全部全選 (22項)
+                      全部全選 ({allAvailableItems.length}項)
                     </button>
                   </div>
 
+                  {/* ➕ Add Custom Item Form */}
+                  <form onSubmit={handleAddCustomItem} className="p-4 sm:p-5 rounded-2xl bg-amber-400/10 border-2 border-dashed border-amber-400/40 space-y-3">
+                    <h5 className="font-heading font-black text-xs text-amber-300 flex items-center gap-1.5">
+                      <Sparkles size={14} />
+                      <span>新增專屬創意抓周道具 (例如：聽診器、名牌包、高爾夫球桿、相機...)</span>
+                    </h5>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      <input
+                        type="text"
+                        value={newItemName}
+                        onChange={(e) => setNewItemName(e.target.value)}
+                        placeholder="物品名稱（如：法拉利車鑰）"
+                        className="px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-xs focus:outline-none focus:border-amber-400 placeholder-white/30"
+                      />
+                      <input
+                        type="text"
+                        value={newItemMeaning}
+                        onChange={(e) => setNewItemMeaning(e.target.value)}
+                        placeholder="志業象徵（如：頂級超跑賽車手）"
+                        className="px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-xs focus:outline-none focus:border-amber-400 placeholder-white/30"
+                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newItemDesc}
+                          onChange={(e) => setNewItemDesc(e.target.value)}
+                          placeholder="寓意說明（如：馳騁賽道奪冠）"
+                          className="flex-1 px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-xs focus:outline-none focus:border-amber-400 placeholder-white/30"
+                        />
+                        <button
+                          type="submit"
+                          className="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-heading font-black text-xs shrink-0 cursor-pointer shadow-md transition-all"
+                        >
+                          ＋ 加入
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+
+                  {/* Items Grid (Built-in + Custom) */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    {ZHUAZHOU_ITEMS.map((item) => {
+                    {allAvailableItems.map((item) => {
                       const isEnabled = activeItemIds.includes(item.id);
+                      const isCustom = 'isCustom' in item && item.isCustom;
                       return (
                         <div
                           key={item.id}
                           onClick={() => handleToggleItem(item.id)}
-                          className={`p-3 rounded-2xl border-2 cursor-pointer transition-all flex items-center gap-2.5 ${
+                          className={`p-3 rounded-2xl border-2 cursor-pointer transition-all flex items-center gap-2.5 relative group ${
                             isEnabled
                               ? 'bg-amber-400/15 border-amber-400/80 text-white font-black shadow-md'
                               : 'bg-white/5 border-white/10 text-white/40 hover:border-white/20'
                           }`}
                         >
-                          <img src={item.iconPath} alt="" className="w-6 h-6 object-contain shrink-0" />
-                          <div className="truncate">
-                            <p className="text-xs truncate">{item.name}</p>
-                            <p className="text-[10px] text-amber-300/80 font-normal">{item.meaning}</p>
+                          {item.iconPath ? (
+                            <img src={item.iconPath} alt="" className="w-6 h-6 object-contain shrink-0" />
+                          ) : (
+                            <span className="text-xl shrink-0">{item.symbol || '🎁'}</span>
+                          )}
+                          <div className="truncate flex-1">
+                            <p className="text-xs truncate flex items-center gap-1">
+                              <span>{item.name}</span>
+                              {isCustom && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-400 text-amber-950 font-bold">
+                                  自訂
+                                </span>
+                              )}
+                            </p>
+                            <p className="text-[10px] text-amber-300/80 font-normal truncate">{item.meaning}</p>
                           </div>
                           {isEnabled && <Check size={14} className="ml-auto text-amber-400 shrink-0" />}
+
+                          {isCustom && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteCustomItem(item.id);
+                              }}
+                              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center shadow hover:scale-110 transition-transform"
+                              title="刪除此自訂品項"
+                            >
+                              ✕
+                            </button>
+                          )}
                         </div>
                       );
                     })}

@@ -45,13 +45,15 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
   const babyAvatar = partyConfig?.babyAvatar || BABY_AVATAR_IMG;
   const roomId = partyConfig?.roomId || 'xingwei';
 
-  // Dynamic items filtered by partyConfig
+  // Dynamic items (builtin + custom) filtered by partyConfig
   const activeItems = useMemo(() => {
+    const customs = partyConfig?.customItems || [];
+    const pool = [...ZHUAZHOU_ITEMS, ...customs];
     if (!partyConfig?.activeItemIds || partyConfig.activeItemIds.length === 0) {
-      return ZHUAZHOU_ITEMS;
+      return pool;
     }
-    return ZHUAZHOU_ITEMS.filter((item) => partyConfig.activeItemIds.includes(item.id));
-  }, [partyConfig?.activeItemIds]);
+    return pool.filter((item) => partyConfig.activeItemIds.includes(item.id));
+  }, [partyConfig?.activeItemIds, partyConfig?.customItems]);
 
   const { sortedStats, top3Items, totalVotesCount } = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -279,7 +281,11 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
                       </div>
                       <div className="flex items-center gap-2.5 my-1">
                         <div className="w-10 h-10 p-1 bg-white rounded-xl flex items-center justify-center border border-blush-200 shrink-0">
-                          <img src={item.iconPath} alt="" className="w-full h-full object-contain" />
+                          {item.iconPath ? (
+                            <img src={item.iconPath} alt="" className="w-full h-full object-contain" />
+                          ) : (
+                            <span className="text-xl select-none">{item.symbol || '🎁'}</span>
+                          )}
                         </div>
                         <div>
                           <h4 className="font-heading font-black text-brown-text text-sm">

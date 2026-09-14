@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ZHUAZHOU_ITEMS } from '../config/itemsData';
-import { GameState } from '../types';
+import { GameState, PartyConfig } from '../types';
 import { 
   X, 
   Sparkles, 
@@ -23,6 +23,7 @@ interface AdminPanelProps {
   onResetAllData: () => Promise<void>;
   onOpenCustomizer?: () => void;
   initialUnlocked?: boolean;
+  partyConfig?: PartyConfig;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
@@ -32,8 +33,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onTriggerReveal,
   onResetGame,
   onResetAllData,
+  onOpenCustomizer,
   initialUnlocked = false,
+  partyConfig,
 }) => {
+  const babyName = partyConfig?.babyName || '星唯';
+  const allItems = React.useMemo(() => {
+    const customs = partyConfig?.customItems || [];
+    return [...ZHUAZHOU_ITEMS, ...customs];
+  }, [partyConfig?.customItems]);
   const [selectedActualIds, setSelectedActualIds] = useState<string[]>(
     gameState.actualItems?.length === 3 ? gameState.actualItems : ['item_09', 'item_16', 'item_01']
   );
@@ -195,7 +203,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <div className="flex items-center justify-between mb-3">
                     <label className="text-sm font-black text-brown-text flex items-center gap-2 font-heading">
                       <Sparkles className="text-pastel-coral" size={18} />
-                      請勾選星唯【實際抓取】的 3 樣志業物品：
+                      請勾選{babyName}【實際抓取】的 3 樣志業物品：
                     </label>
                     <span className="text-xs font-heading font-black text-pastel-coral">
                       {selectedActualIds.length}/3 已選
@@ -203,7 +211,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    {ZHUAZHOU_ITEMS.map((item) => {
+                    {allItems.map((item) => {
                       const isPicked = selectedActualIds.includes(item.id);
                       return (
                         <div
@@ -215,7 +223,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                               : 'bg-white border-blush-200 text-brown-muted hover:border-pastel-coral'
                           }`}
                         >
-                          <img src={item.iconPath} alt="" className="w-6 h-6 object-contain" />
+                          {item.iconPath ? (
+                            <img src={item.iconPath} alt="" className="w-6 h-6 object-contain" />
+                          ) : (
+                            <span className="text-base select-none">{item.symbol || '🎁'}</span>
+                          )}
                           <span className="text-xs">{item.name}</span>
                           {isPicked && <Check size={14} className="ml-auto text-pastel-coral font-black" />}
                         </div>
@@ -238,7 +250,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     }`}
                   >
                     <PartyPopper size={22} />
-                    <span>🎉 公布星唯的抓周結果！ (TRIGGER REVEAL)</span>
+                    <span>🎉 公布{babyName}的抓周結果！ (TRIGGER REVEAL)</span>
                   </button>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">

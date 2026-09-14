@@ -12,6 +12,17 @@ export interface CustomPrizeConfig {
   claimedNote?: string;
 }
 
+export interface CustomZhuazhouItem {
+  id: string;
+  name: string;
+  meaning: string;
+  iconPath?: string;
+  symbol: string;
+  category: string;
+  desc: string;
+  isCustom?: boolean;
+}
+
 export interface PartyConfig {
   roomId: string;
   babyName: string;
@@ -19,7 +30,8 @@ export interface PartyConfig {
   babyBirthday?: string;
   babyAvatar: string;
   themeColor: ThemeStyle;
-  activeItemIds: string[]; // List of enabled Zhuazhou item IDs (defaults to all 22)
+  activeItemIds: string[]; // List of active item IDs
+  customItems?: CustomZhuazhouItem[]; // User-added custom items
   prize: CustomPrizeConfig;
   updatedAt?: number;
 }
