@@ -7,9 +7,11 @@ import { X, Download, Share2, Sparkles, Award, Heart, Check } from 'lucide-react
 interface CertificateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  partyConfig: PartyConfig;
-  gameState: GameState;
-  guesses: GuessRecord[];
+  partyConfig?: PartyConfig;
+  gameState?: GameState;
+  guesses?: GuessRecord[];
+  actualItemIds?: string[];
+  champions?: string[];
 }
 
 export const CertificateModal: React.FC<CertificateModalProps> = ({
@@ -17,22 +19,26 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
   onClose,
   partyConfig,
   gameState,
-  guesses,
+  guesses = [],
+  actualItemIds,
+  champions: championsProp,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const babyName = partyConfig.babyName || '星唯';
-  const allPool = [...ZHUAZHOU_ITEMS, ...(partyConfig.customItems || [])];
+  const babyName = partyConfig?.babyName || '星唯';
+  const allPool = [...ZHUAZHOU_ITEMS, ...(partyConfig?.customItems || [])];
 
-  const actualItemData = (gameState.actualItems || [])
+  const resolvedActualIds = actualItemIds || gameState?.actualItems || ['item_09', 'item_16', 'item_01'];
+
+  const actualItemData = resolvedActualIds
     .map((id) => allPool.find((it) => it.id === id))
     .filter(Boolean);
 
-  // Compute Champions
-  const actualSet = new Set(gameState.actualItems || []);
-  const champions = guesses.filter(
-    (g) => (g.selections || []).filter((id) => actualSet.has(id)).length === 3
-  );
+  // Compute Champions Names
+  const actualSet = new Set(resolvedActualIds);
+  const resolvedChampionNames = championsProp || guesses
+    .filter((g) => (g.selections || []).filter((id) => actualSet.has(id)).length === 3)
+    .map((g) => g.name);
 
   const downloadCertificate = () => {
     const canvas = document.createElement('canvas');
@@ -115,13 +121,13 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
     ctx.fillStyle = '#FFD700';
     ctx.fillText('👑 猜中三項 · 特等神預言家榜單 👑', 540, 1080);
 
-    const winnerNames = champions.map((c) => c.name).join('、 ') || '全體親友同心祝福 · 志在參與！';
+    const winnerNames = resolvedChampionNames.join('、 ') || '全體親友同心祝福 · 志在參與！';
     ctx.font = 'bold 38px sans-serif';
     ctx.fillStyle = '#FFFFFF';
     ctx.fillText(winnerNames, 540, 1160);
 
     // 5. Custom Prize Showcase Box
-    if (partyConfig.prize?.enabled) {
+    if (partyConfig?.prize?.enabled) {
       ctx.fillStyle = 'rgba(255, 215, 0, 0.1)';
       ctx.roundRect?.(140, 1260, 800, 280, [28]);
       ctx.fill();
@@ -137,15 +143,18 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       ctx.fillText(partyConfig.prize.title || '精美好禮', 540, 1420);
 
       ctx.font = '32px sans-serif';
-      ctx.fillStyle = '#FFC107';
-      ctx.fillText(partyConfig.prize.claimedNote || '請洽主辦人領取', 540, 1480);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.fillText(partyConfig.prize.description || '猜中品項之幸運預言家獲贈！', 540, 1480);
     }
 
-    // 6. Watermark Footer
-    ctx.font = 'bold 30px "Outfit", sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.fillText('Powered by BabyWeb · 抓周派對即時互動系統', 540, 1780);
-    ctx.fillText('https://fromlifetolines.github.io/baby-web/', 540, 1830);
+    // 6. Footer Brand Stamp
+    ctx.font = 'bold 28px "Outfit", sans-serif';
+    ctx.fillStyle = 'rgba(255, 215, 0, 0.6)';
+    ctx.fillText('BABYWEB INTERACTIVE ZHUAZHOU SAAS · OFFICIAL CERTIFIED', 540, 1720);
+
+    ctx.font = '24px sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.fillText('見證成長奇蹟 · 珍藏永恆感動', 540, 1760);
 
     // Export & Download
     const link = document.createElement('a');
@@ -209,7 +218,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
               <div className="pt-2 border-t border-white/10">
                 <span className="text-xs font-black text-amber-400 block mb-1">神預言家貴賓</span>
                 <p className="text-xs text-white/80 truncate">
-                  {champions.map((c) => c.name).join('、 ') || '全體親友熱情支持！'}
+                  {resolvedChampionNames.join('、 ') || '全體親友熱情支持！'}
                 </p>
               </div>
             </div>

@@ -282,11 +282,15 @@ export const RevealView: React.FC<RevealViewProps> = ({
 
                         <div className="my-auto flex flex-col items-center justify-center">
                           <div className="w-20 h-20 sm:w-28 sm:h-28 p-2 rounded-2xl bg-white/95 border-2 border-amber-300 flex items-center justify-center shadow-lg transform transition-transform">
-                            <img
-                              src={reel.item.iconPath}
-                              alt={reel.item.name}
-                              className="w-full h-full object-contain drop-shadow-md"
-                            />
+                            {reel.item.iconPath ? (
+                              <img
+                                src={reel.item.iconPath}
+                                alt={reel.item.name}
+                                className="w-full h-full object-contain drop-shadow-md"
+                              />
+                            ) : (
+                              <span className="text-4xl sm:text-5xl select-none">{reel.item.symbol || '🎁'}</span>
+                            )}
                           </div>
                           <h3 className="font-heading font-black text-lg sm:text-2xl text-white mt-2 drop-shadow-md">
                             {reel.item.name}
@@ -343,7 +347,11 @@ export const RevealView: React.FC<RevealViewProps> = ({
                           第 {idx + 1} 順位
                         </div>
                         <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-2 p-2 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center shadow-inner">
-                          <img src={item.iconPath} alt={item.name} className="w-full h-full object-contain" />
+                          {item.iconPath ? (
+                            <img src={item.iconPath} alt={item.name} className="w-full h-full object-contain" />
+                          ) : (
+                            <span className="text-4xl sm:text-5xl select-none">{item.symbol || '🎁'}</span>
+                          )}
                         </div>
                         <h3 className="font-heading font-black text-xl sm:text-2xl text-brown-text">
                           {item.name}
@@ -725,7 +733,7 @@ export const RevealView: React.FC<RevealViewProps> = ({
           onClose={() => setIsCertOpen(false)}
           partyConfig={partyConfig}
           actualItemIds={gameState.actualItems || []}
-          champions={results.champions.map(c => c.name)}
+          champions={champions.map(c => c.name)}
         />
       </motion.div>
     </div>
