@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Sparkles, ArrowRight, User } from 'lucide-react';
+import { PartyConfig } from '../types';
 
 interface PortalViewProps {
   onEnter: (userName: string) => void;
   onOpenStickerModal: () => void;
+  partyConfig?: PartyConfig;
 }
 
 const QUICK_TITLES = [
@@ -13,10 +15,18 @@ const QUICK_TITLES = [
   '好友', '堂哥', '堂姐', '表哥', '表姐'
 ];
 
-export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerModal }) => {
+export const PortalView: React.FC<PortalViewProps> = ({ 
+  onEnter, 
+  onOpenStickerModal,
+  partyConfig 
+}) => {
   const [name, setName] = useState('');
   const [selectedPrefix, setSelectedPrefix] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  const babyName = partyConfig?.babyName || '星唯';
+  const subtitle = partyConfig?.subtitle || `請親朋好友精準預測${babyName}即將抓取的前 3 項志業 🎀`;
+  const avatarImg = partyConfig?.babyAvatar || `${import.meta.env.BASE_URL}assets/baby/08.png`;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +35,7 @@ export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerMo
       : name.trim();
 
     if (!finalName) {
-      setErrorMsg('請輸入稱謂與姓名，讓星唯知道是誰在為她祝福！');
+      setErrorMsg(`請輸入稱謂與姓名，讓${babyName}知道是誰在為她祝福！`);
       return;
     }
     setErrorMsg('');
@@ -54,7 +64,7 @@ export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerMo
         <div className="absolute top-0 right-0 w-36 h-36 bg-blush-200/40 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-40 h-40 bg-cream-200/50 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Baby Xing-Wei Cute Avatar */}
+        {/* Baby Cute Avatar */}
         <div className="relative mx-auto mb-6 w-32 h-32 sm:w-36 sm:h-36">
           <motion.div
             animate={{
@@ -73,11 +83,11 @@ export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerMo
           >
             <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-white shadow-inner">
               <img
-                src={`${import.meta.env.BASE_URL}assets/baby/08.png`}
-                alt="Baby Xing-Wei"
+                src={avatarImg}
+                alt={babyName}
                 className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
                 onClick={onOpenStickerModal}
-                title="點擊查看專屬 LINE 貼圖"
+                title="點擊查看專屬好禮"
               />
             </div>
           </motion.div>
@@ -86,21 +96,20 @@ export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerMo
             className="absolute -bottom-1.5 -right-1.5 px-3 py-1 rounded-full bg-pastel-coral text-white font-cute text-xs font-bold shadow-md hover:scale-105 transition-transform flex items-center gap-1"
           >
             <Sparkles size={12} />
-            貼圖大賞
+            專屬禮賞
           </button>
         </div>
 
         {/* Header Title */}
         <div className="space-y-1.5 mb-6">
           <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-blush-100 text-pastel-rose text-xs font-bold tracking-wider">
-            🌸 Xing-Wei's 1st Birthday Party 🌸
+            🌸 {babyName}'s 1st Birthday Party 🌸
           </span>
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-black text-brown-text leading-tight tracking-tight">
-            星唯 1 歲抓周預測大典
+            {babyName} 1 歲抓周預測大典
           </h1>
           <p className="font-cute text-xs sm:text-sm md:text-base text-brown-muted font-medium pt-1 tracking-tight break-keep max-w-md mx-auto">
-            <span className="inline-block">請親朋好友精準預測</span>
-            <span className="inline-block">星唯即將抓取的前 3 項志業 🎀</span>
+            {subtitle}
           </p>
         </div>
 
@@ -142,10 +151,10 @@ export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerMo
                   key={title}
                   type="button"
                   onClick={() => handleChipClick(title)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-cute font-bold transition-all ${
                     selectedPrefix === title
-                      ? 'bg-pastel-coral text-white shadow-md scale-105'
-                      : 'bg-white/80 border border-blush-200 text-brown-muted hover:border-pastel-coral hover:text-brown-text'
+                      ? 'bg-pastel-coral text-white shadow-soft-coral scale-105'
+                      : 'bg-white/80 text-brown-muted hover:bg-blush-100 hover:text-brown-text border border-blush-200'
                   }`}
                 >
                   {title}
@@ -154,30 +163,20 @@ export const PortalView: React.FC<PortalViewProps> = ({ onEnter, onOpenStickerMo
             </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="pt-3">
-            <button
-              type="submit"
-              className="w-full group relative py-3.5 px-8 rounded-2xl pastel-btn-primary font-heading font-black tracking-wider transition-all duration-300 flex items-center justify-center gap-3 active:scale-[0.98] cursor-pointer shadow-md"
-            >
-              <div className="flex flex-col items-center justify-center leading-tight">
-                <span className="text-lg sm:text-xl font-black">進入預測大典</span>
-                <span className="text-[11px] sm:text-xs tracking-wider opacity-85 font-bold uppercase mt-0.5">
-                  START PREDICTION
-                </span>
-              </div>
-              <ArrowRight
-                size={22}
-                className="transform group-hover:translate-x-1.5 transition-transform shrink-0"
-              />
-            </button>
-          </div>
+          {/* Submit Action */}
+          <button
+            type="submit"
+            className="w-full py-4 px-6 rounded-2xl pastel-btn-primary font-heading text-lg font-black tracking-wider flex items-center justify-center gap-2 group cursor-pointer shadow-lg hover:shadow-xl mt-4"
+          >
+            <span>進入預測大典 (ENTER)</span>
+            <ArrowRight size={20} className="group-hover:translate-x-1.5 transition-transform" />
+          </button>
         </form>
 
         {/* Footer Note */}
-        <div className="mt-8 pt-4 border-t border-blush-200/60 flex items-center justify-center gap-2 text-xs text-brown-muted font-cute font-medium">
-          <Heart size={14} className="text-pastel-coral fill-pastel-coral" />
-          <span>全場即時同步 · 祝星唯平安健康長大</span>
+        <div className="mt-8 pt-4 border-t border-blush-100 flex items-center justify-center gap-1 text-[11px] text-brown-muted/70 font-cute">
+          <Heart size={12} className="text-pastel-coral fill-pastel-coral" />
+          <span>每一票都承載著最溫暖的祝福 · 即時連線開獎中</span>
         </div>
       </motion.div>
     </div>

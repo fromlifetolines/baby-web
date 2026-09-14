@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Tilt from 'react-parallax-tilt';
 import { ZHUAZHOU_ITEMS, ZhuazhouItem } from '../config/itemsData';
-import { Sparkles, AlertCircle, ArrowLeft, Send, Heart, Check } from 'lucide-react';
+import { Sparkles, AlertCircle, ArrowLeft, Send, Heart } from 'lucide-react';
+import { PartyConfig } from '../types';
 
 interface MatrixViewProps {
   userName: string;
   onSubmitSelections: (selections: string[]) => void;
   onBackToPortal: () => void;
   onOpenStickerModal: () => void;
+  partyConfig?: PartyConfig;
 }
 
 export const MatrixView: React.FC<MatrixViewProps> = ({
@@ -16,9 +18,20 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
   onSubmitSelections,
   onBackToPortal,
   onOpenStickerModal,
+  partyConfig,
 }) => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const babyName = partyConfig?.babyName || '星唯';
+
+  // Filter items based on host customization in partyConfig.activeItemIds
+  const displayItems = useMemo(() => {
+    if (!partyConfig?.activeItemIds || partyConfig.activeItemIds.length === 0) {
+      return ZHUAZHOU_ITEMS;
+    }
+    return ZHUAZHOU_ITEMS.filter((item) => partyConfig.activeItemIds.includes(item.id));
+  }, [partyConfig?.activeItemIds]);
 
   const toggleSelection = (id: string) => {
     setErrorMessage(null);
@@ -47,7 +60,7 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
   };
 
   const selectedItemsData = selectedIds
-    .map((id) => ZHUAZHOU_ITEMS.find((item) => item.id === id))
+    .map((id) => displayItems.find((item) => item.id === id) || ZHUAZHOU_ITEMS.find((it) => it.id === id))
     .filter(Boolean) as ZhuazhouItem[];
 
   return (
@@ -66,7 +79,7 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
             <div className="flex items-center gap-2">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-pastel-coral animate-ping" />
               <p className="text-xs font-cute font-bold tracking-wider text-pastel-rose uppercase">
-                XING-WEI'S 1ST BIRTHDAY
+                {babyName.toUpperCase()}'S 1ST BIRTHDAY
               </p>
             </div>
             <h2 className="font-heading text-2xl sm:text-3xl font-black text-brown-text">
@@ -75,14 +88,14 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
           </div>
         </div>
 
-        {/* User Badge & Sticker Pill */}
+        {/* User Badge & Prize Pill */}
         <div className="flex items-center gap-3">
           <button
             onClick={onOpenStickerModal}
             className="px-4 py-2.5 rounded-2xl liquid-glass text-xs font-cute font-bold text-brown-text hover:border-pastel-coral transition-colors flex items-center gap-2 shadow-sm"
           >
             <Sparkles size={14} className="text-pastel-coral" />
-            <span>貼圖大賞</span>
+            <span>{partyConfig?.prize?.enabled ? '查看獎項' : '貼圖大賞'}</span>
           </button>
           <div className="px-4 py-2 rounded-2xl liquid-glass border-blush-300 text-xs font-medium text-brown-text flex items-center gap-2 shadow-sm">
             <span className="text-brown-muted font-bold">預測貴賓:</span>
@@ -96,7 +109,7 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
         <div className="flex items-center gap-2 text-sm text-brown-muted font-cute font-medium">
           <Heart size={16} className="text-pastel-coral fill-pastel-coral shrink-0" />
           <span>
-            請在 {ZHUAZHOU_ITEMS.length} 個品項中選取 <strong className="text-pastel-rose font-black">3 項</strong> 您認為星唯最有可能抓取的志業物品。
+            請在 {displayItems.length} 個現場品項中選取 <strong className="text-pastel-rose font-black">3 項</strong> 您認為{babyName}最有可能抓取的志業物品。
           </span>
         </div>
         <div className="text-xs font-cute font-bold text-pastel-coral">
@@ -127,9 +140,9 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
         )}
       </AnimatePresence>
 
-      {/* 16 Items Pastel Cards Matrix */}
+      {/* Dynamic Item Cards Matrix */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        {ZHUAZHOU_ITEMS.map((item, index) => {
+        {displayItems.map((item, index) => {
           const isSelected = selectedIds.includes(item.id);
           const order = getSelectionOrder(item.id);
 

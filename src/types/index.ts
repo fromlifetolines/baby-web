@@ -2,12 +2,35 @@ export type ViewState = 'portal' | 'matrix' | 'dashboard' | 'reveal';
 
 export type AppMode = 'guest' | 'projector' | 'admin';
 
+export type ThemeStyle = 'gold-dark' | 'blush-pink' | 'baby-blue' | 'warm-cream';
+
+export interface CustomPrizeConfig {
+  enabled: boolean;
+  title: string;
+  description: string;
+  imageUrl?: string;
+  claimedNote?: string;
+}
+
+export interface PartyConfig {
+  roomId: string;
+  babyName: string;
+  subtitle: string;
+  babyBirthday?: string;
+  babyAvatar: string;
+  themeColor: ThemeStyle;
+  activeItemIds: string[]; // List of enabled Zhuazhou item IDs (defaults to all 22)
+  prize: CustomPrizeConfig;
+  updatedAt?: number;
+}
+
 export type GuessRecord = {
   id?: string;
   name: string;
   selections: string[]; // exactly 3 item IDs
   timestamp: any;
   avatarSeed?: number;
+  roomId?: string;
 };
 
 export type GameState = {
@@ -15,6 +38,7 @@ export type GameState = {
   actualItems: string[]; // 3 actual picked item IDs
   revealedAt?: number;
   lastResetTimestamp?: number;
+  roomId?: string;
 };
 
 export type WinnerScore = {

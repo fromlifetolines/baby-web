@@ -6,35 +6,35 @@ import { DashboardView } from './components/DashboardView';
 import { ProjectorView } from './components/ProjectorView';
 import { RevealView } from './components/RevealView';
 import { AdminPanel } from './components/AdminPanel';
+import { PartyCustomizerModal } from './components/PartyCustomizerModal';
 import { BabyStickerRewardModal } from './components/BabyStickerRewardModal';
 import { LiquidModal } from './components/LiquidModal';
 import { 
   subscribeToGuesses, 
   subscribeToGameState, 
+  subscribeToPartyConfig,
   submitGuessToDb, 
   updateGameStateInDb, 
-  resetAllGuessesInDb 
+  updatePartyConfigInDb,
+  resetAllGuessesInDb,
+  DEFAULT_PARTY_CONFIG
 } from './config/firebase';
-import { GuessRecord, GameState, ViewState, AppMode } from './types';
-import { Settings, Sparkles, Monitor, Home, Heart } from 'lucide-react';
+import { GuessRecord, GameState, ViewState, AppMode, PartyConfig } from './types';
+import { Settings, Sparkles, Monitor, Home, Heart, Sliders } from 'lucide-react';
 
 export const App: React.FC = () => {
-  // Mode from URL query params
+  // Mode & Room from URL query params
   const [appMode, setAppMode] = useState<AppMode>('guest');
+  const [currentRoomId, setCurrentRoomId] = useState<string>('xingwei');
   
+  // Dynamic Party Config
+  const [partyConfig, setPartyConfig] = useState<PartyConfig>(DEFAULT_PARTY_CONFIG);
+  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
+
   // Navigation & User State
   const [view, setView] = useState<ViewState>('portal');
-  const [userName, setUserName] = useState<string>(() => {
-    return localStorage.getItem('xingwei_current_user_v2') || '';
-  });
-  const [userSelections, setUserSelections] = useState<string[]>(() => {
-    try {
-      const stored = localStorage.getItem('xingwei_user_selections_v2');
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [userName, setUserName] = useState<string>('');
+  const [userSelections, setUserSelections] = useState<string[]>([]);
 
   // Real-time Data
   const [guesses, setGuesses] = useState<GuessRecord[]>([]);
@@ -64,6 +64,21 @@ export const App: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     const viewParam = params.get('view');
     const adminParam = params.get('admin');
+    const roomParam = params.get('room');
+
+    const activeRoom = roomParam ? roomParam.trim().toLowerCase() : 'xingwei';
+    setCurrentRoomId(activeRoom);
+
+    // Initialize user session from room-scoped storage
+    const storedUser = localStorage.getItem(`guest_user_${activeRoom}`) || '';
+    setUserName(storedUser);
+
+    try {
+      const storedSelections = localStorage.getItem(`guest_selections_${activeRoom}`);
+      setUserSelections(storedSelections ? JSON.parse(storedSelections) : []);
+    } catch {
+      setUserSelections([]);
+    }
 
     if (viewParam === 'projector') {
       setAppMode('projector');
@@ -80,6 +95,8 @@ export const App: React.FC = () => {
   // Helper to force purge local guest session
   const purgeClientSession = () => {
     try {
+      localStorage.removeItem(`guest_user_${currentRoomId}`);
+      localStorage.removeItem(`guest_selections_${currentRoomId}`);
       localStorage.removeItem('xingwei_current_user_v2');
       localStorage.removeItem('xingwei_user_selections_v2');
       localStorage.removeItem('hasVoted');
@@ -106,22 +123,26 @@ export const App: React.FC = () => {
         setView('portal');
       }
     }
-  }, [appMode]);
+  }, [appMode, userName, userSelections]);
 
-  // Subscribe to real-time guesses & gameState with reactive reset handling
+  // Subscribe to real-time partyConfig, guesses & gameState with reactive reset handling
   useEffect(() => {
-    const unsubGuesses = subscribeToGuesses((updatedGuesses) => {
+    const unsubConfig = subscribeToPartyConfig(currentRoomId, (updatedConfig) => {
+      setPartyConfig(updatedConfig);
+    });
+
+    const unsubGuesses = subscribeToGuesses(currentRoomId, (updatedGuesses) => {
       setGuesses(updatedGuesses);
     });
 
-    const unsubGameState = subscribeToGameState((updatedGameState) => {
+    const unsubGameState = subscribeToGameState(currentRoomId, (updatedGameState) => {
       setGameState(updatedGameState);
 
       // Reactive Reset Handling via lastResetTimestamp
       if (updatedGameState.lastResetTimestamp) {
-        const localAck = Number(localStorage.getItem('xingwei_last_reset_ack') || 0);
+        const localAck = Number(localStorage.getItem(`last_reset_ack_${currentRoomId}`) || 0);
         if (updatedGameState.lastResetTimestamp > localAck) {
-          localStorage.setItem('xingwei_last_reset_ack', String(updatedGameState.lastResetTimestamp));
+          localStorage.setItem(`last_reset_ack_${currentRoomId}`, String(updatedGameState.lastResetTimestamp));
           purgeClientSession();
           return;
         }
@@ -138,15 +159,16 @@ export const App: React.FC = () => {
     });
 
     return () => {
+      if (unsubConfig) unsubConfig();
       if (unsubGuesses) unsubGuesses();
       if (unsubGameState) unsubGameState();
     };
-  }, [userName, userSelections, appMode, view]);
+  }, [currentRoomId, userName, userSelections, appMode, view]);
 
   // Handler: Enter Portal
   const handleEnterPortal = (name: string) => {
     setUserName(name);
-    localStorage.setItem('xingwei_current_user_v2', name);
+    localStorage.setItem(`guest_user_${currentRoomId}`, name);
     setView('matrix');
   };
 
@@ -154,8 +176,8 @@ export const App: React.FC = () => {
   const handleSubmitSelections = async (selections: string[]) => {
     try {
       setUserSelections(selections);
-      localStorage.setItem('xingwei_user_selections_v2', JSON.stringify(selections));
-      await submitGuessToDb(userName, selections);
+      localStorage.setItem(`guest_selections_${currentRoomId}`, JSON.stringify(selections));
+      await submitGuessToDb(userName, selections, currentRoomId);
       setView('dashboard');
       setAlertModal({
         isOpen: true,
@@ -170,7 +192,7 @@ export const App: React.FC = () => {
 
   // Handler: Admin Trigger Reveal
   const handleTriggerReveal = async (actualItems: string[]) => {
-    await updateGameStateInDb({
+    await updateGameStateInDb(currentRoomId, {
       isRevealed: true,
       actualItems,
     });
@@ -178,7 +200,7 @@ export const App: React.FC = () => {
 
   // Handler: Admin Reset Game State Only
   const handleResetGame = async () => {
-    await updateGameStateInDb({
+    await updateGameStateInDb(currentRoomId, {
       isRevealed: false,
     });
     if (appMode === 'guest') {
@@ -188,12 +210,19 @@ export const App: React.FC = () => {
 
   // Handler: Admin Reset All Data (Clean Slate & Global Purge)
   const handleResetAllData = async () => {
-    await resetAllGuessesInDb();
+    await resetAllGuessesInDb(currentRoomId);
     setGuesses([]);
     purgeClientSession();
   };
 
+  // Handler: Save Party Customizer
+  const handleSaveConfig = async (newConfig: Partial<PartyConfig>) => {
+    await updatePartyConfigInDb(currentRoomId, newConfig);
+    setPartyConfig((prev) => ({ ...prev, ...newConfig }));
+  };
+
   const isRevealActive = gameState.isRevealed || view === 'reveal';
+  const babyName = partyConfig.babyName || '星唯';
 
   return (
     <div className={`relative min-h-screen ${isRevealActive ? 'bg-[#0a0012] text-white' : 'text-brown-text'} overflow-x-hidden font-body select-none transition-colors duration-500`}>
@@ -222,10 +251,10 @@ export const App: React.FC = () => {
           </div>
           <div>
             <span className={`font-heading text-lg sm:text-xl font-black ${isRevealActive ? 'text-amber-300' : 'text-brown-text'} block leading-none`}>
-              星唯 1 歲生日抓周
+              {babyName} 1 歲生日抓周
             </span>
             <span className={`text-[11px] ${isRevealActive ? 'text-amber-200/80' : 'text-pastel-rose'} font-cute font-bold tracking-wider uppercase`}>
-              Xing-Wei's 1st Birthday
+              {partyConfig.roomId || currentRoomId} · 抓周大典
             </span>
           </div>
         </div>
@@ -252,6 +281,18 @@ export const App: React.FC = () => {
               <span>大螢幕投影</span>
             </button>
           )}
+
+          {/* Quick Customizer Studio Button */}
+          <button
+            onClick={() => setIsCustomizerOpen(true)}
+            className={`px-3.5 py-2 rounded-2xl ${
+              isRevealActive ? 'bg-amber-400 text-amber-950 font-black' : 'bg-amber-100/90 text-amber-950 font-bold border border-amber-300'
+            } text-xs font-heading flex items-center gap-1.5 shadow-sm hover:scale-105 transition-all cursor-pointer`}
+            title="開啟派對客製化設定"
+          >
+            <Sliders size={14} />
+            <span>派對客製</span>
+          </button>
 
           <button
             onClick={() => setIsStickerModalOpen(true)}
@@ -286,11 +327,13 @@ export const App: React.FC = () => {
             currentUser={userName}
             onOpenStickerModal={() => setIsStickerModalOpen(true)}
             onResetGame={handleResetGame}
+            partyConfig={partyConfig}
           />
         ) : appMode === 'projector' ? (
           <ProjectorView
             guesses={guesses}
             onOpenAdmin={() => setIsAdminOpen(true)}
+            partyConfig={partyConfig}
           />
         ) : (
           <>
@@ -298,6 +341,7 @@ export const App: React.FC = () => {
               <PortalView
                 onEnter={handleEnterPortal}
                 onOpenStickerModal={() => setIsStickerModalOpen(true)}
+                partyConfig={partyConfig}
               />
             )}
 
@@ -307,6 +351,7 @@ export const App: React.FC = () => {
                 onSubmitSelections={handleSubmitSelections}
                 onBackToPortal={() => setView('portal')}
                 onOpenStickerModal={() => setIsStickerModalOpen(true)}
+                partyConfig={partyConfig}
               />
             )}
 
@@ -318,6 +363,7 @@ export const App: React.FC = () => {
                 onOpenStickerModal={() => setIsStickerModalOpen(true)}
                 onOpenAdmin={() => setIsAdminOpen(true)}
                 onSwitchToProjector={() => setAppMode('projector')}
+                partyConfig={partyConfig}
               />
             )}
           </>
@@ -332,7 +378,15 @@ export const App: React.FC = () => {
         onTriggerReveal={handleTriggerReveal}
         onResetGame={handleResetGame}
         onResetAllData={handleResetAllData}
+        onOpenCustomizer={() => setIsCustomizerOpen(true)}
         initialUnlocked={adminPreUnlocked}
+      />
+
+      <PartyCustomizerModal
+        isOpen={isCustomizerOpen}
+        onClose={() => setIsCustomizerOpen(false)}
+        config={partyConfig}
+        onSaveConfig={handleSaveConfig}
       />
 
       <BabyStickerRewardModal

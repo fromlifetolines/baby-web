@@ -12,7 +12,7 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { ZHUAZHOU_ITEMS, BABY_AVATAR_IMG } from '../config/itemsData';
-import { GuessRecord } from '../types';
+import { GuessRecord, PartyConfig } from '../types';
 import { 
   Sparkles, 
   Trophy, 
@@ -22,7 +22,8 @@ import {
   QrCode, 
   Smartphone, 
   ArrowRight,
-  Clock
+  Clock,
+  Sliders
 } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -30,26 +31,45 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 interface ProjectorViewProps {
   guesses: GuessRecord[];
   onOpenAdmin: () => void;
+  partyConfig?: PartyConfig;
 }
 
-export const ProjectorView: React.FC<ProjectorViewProps> = ({ guesses, onOpenAdmin }) => {
+export const ProjectorView: React.FC<ProjectorViewProps> = ({ 
+  guesses, 
+  onOpenAdmin,
+  partyConfig 
+}) => {
   const base = import.meta.env.BASE_URL || '/';
+
+  const babyName = partyConfig?.babyName || '星唯';
+  const babyAvatar = partyConfig?.babyAvatar || BABY_AVATAR_IMG;
+  const roomId = partyConfig?.roomId || 'xingwei';
+
+  // Dynamic items filtered by partyConfig
+  const activeItems = useMemo(() => {
+    if (!partyConfig?.activeItemIds || partyConfig.activeItemIds.length === 0) {
+      return ZHUAZHOU_ITEMS;
+    }
+    return ZHUAZHOU_ITEMS.filter((item) => partyConfig.activeItemIds.includes(item.id));
+  }, [partyConfig?.activeItemIds]);
 
   const { sortedStats, top3Items, totalVotesCount } = useMemo(() => {
     const counts: Record<string, number> = {};
-    ZHUAZHOU_ITEMS.forEach((item) => {
+    activeItems.forEach((item) => {
       counts[item.id] = 0;
     });
 
     let total = 0;
     guesses.forEach((g) => {
       (g.selections || []).forEach((itemId) => {
-        counts[itemId] = (counts[itemId] || 0) + 1;
+        if (counts[itemId] !== undefined) {
+          counts[itemId] = (counts[itemId] || 0) + 1;
+        }
         total++;
       });
     });
 
-    const stats = ZHUAZHOU_ITEMS.map((item) => ({
+    const stats = activeItems.map((item) => ({
       ...item,
       count: counts[item.id] || 0,
       percentage: total > 0 ? Math.round(((counts[item.id] || 0) / (guesses.length || 1)) * 100) : 0,
@@ -60,7 +80,7 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({ guesses, onOpenAdm
       top3Items: stats.slice(0, 3),
       totalVotesCount: total,
     };
-  }, [guesses]);
+  }, [guesses, activeItems]);
 
   const chartData = useMemo(() => {
     const displayStats = sortedStats.slice(0, 10);
@@ -70,59 +90,64 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({ guesses, onOpenAdm
         {
           label: '得票數',
           data: displayStats.map((item) => item.count),
-          backgroundColor: (context: any) => {
-            const chart = context.chart;
-            const { ctx, chartArea } = chart;
-            if (!chartArea) return '#FFB6C1';
-            const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
-            gradient.addColorStop(0, '#FFE4E6');
-            gradient.addColorStop(1, '#FF6F61');
-            return gradient;
-          },
-          borderColor: '#FF6F61',
+          backgroundColor: [
+            'rgba(255, 111, 97, 0.85)',
+            'rgba(255, 182, 193, 0.85)',
+            'rgba(255, 218, 185, 0.85)',
+            'rgba(224, 187, 228, 0.85)',
+            'rgba(255, 154, 162, 0.85)',
+            'rgba(255, 206, 150, 0.85)',
+            'rgba(181, 234, 215, 0.85)',
+            'rgba(199, 206, 234, 0.85)',
+            'rgba(240, 180, 200, 0.85)',
+            'rgba(215, 190, 220, 0.85)',
+          ],
+          borderColor: [
+            '#FF6F61',
+            '#FFB6C1',
+            '#FFDAB9',
+            '#E0BBE4',
+            '#FF9AA2',
+            '#FFCE96',
+            '#B5EAD7',
+            '#C7CEEA',
+            '#F0B4C8',
+            '#D7BEDC',
+          ],
           borderWidth: 2,
-          borderRadius: 14,
+          borderRadius: 16,
           borderSkipped: false,
-          barThickness: 22,
+          barPercentage: 0.7,
         },
       ],
     };
   }, [sortedStats]);
 
   const chartOptions: ChartOptions<'bar'> = {
-    indexAxis: 'y' as const,
+    indexAxis: 'y',
     responsive: true,
     maintainAspectRatio: false,
-    animation: {
-      duration: 600,
-      easing: 'easeOutQuart',
-    },
     plugins: {
-      legend: { display: false },
+      legend: {
+        display: false,
+      },
       tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#5C4033',
-        bodyColor: '#B76E79',
-        borderColor: '#FFB6C1',
-        borderWidth: 2,
-        padding: 16,
-        cornerRadius: 18,
-        titleFont: { family: 'Quicksand', size: 16, weight: 'bold' },
-        bodyFont: { family: 'Zen Maru Gothic', size: 14 },
-        callbacks: {
-          label: (context) => {
-            const xVal = context.parsed?.x ?? 0;
-            return ` 得票數: ${xVal} 票 (${Math.round((xVal / (guesses.length || 1)) * 100)}% 貴賓支持)`;
-          },
-        },
+        backgroundColor: 'rgba(61, 40, 29, 0.9)',
+        titleColor: '#FFDAB9',
+        bodyColor: '#FFFFFF',
+        titleFont: { family: 'Zen Maru Gothic', weight: 'bold', size: 14 },
+        bodyFont: { family: 'Zen Maru Gothic', size: 13 },
+        padding: 12,
+        cornerRadius: 16,
+        displayColors: false,
       },
     },
     scales: {
       x: {
-        grid: { display: false },
+        grid: { color: 'rgba(232, 180, 184, 0.2)' },
         ticks: {
-          color: '#8C7265',
-          font: { family: 'Quicksand', size: 14, weight: 'bold' },
+          color: '#5C4033',
+          font: { family: 'Outfit', weight: 'bold', size: 12 },
           stepSize: 1,
         },
         border: { display: false },
@@ -131,12 +156,17 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({ guesses, onOpenAdm
         grid: { display: false },
         ticks: {
           color: '#5C4033',
-          font: { family: 'Zen Maru Gothic', size: 14, weight: 'bold' as const },
+          font: { family: 'Zen Maru Gothic', weight: 'bold', size: 13 },
         },
         border: { display: false },
       },
     },
   };
+
+  // Dynamic Room QR Code generation URL
+  const origin = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : 'https://fromlifetolines.github.io/baby-web/';
+  const guestRoomUrl = `${origin}?room=${roomId}`;
+  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(guestRoomUrl)}&margin=10`;
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-[1700px] mx-auto flex flex-col justify-between select-none">
@@ -151,8 +181,8 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({ guesses, onOpenAdm
             >
               <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-white shadow-inner">
                 <img
-                  src={BABY_AVATAR_IMG}
-                  alt="星唯"
+                  src={babyAvatar}
+                  alt={babyName}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -160,11 +190,16 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({ guesses, onOpenAdm
           </div>
 
           <div>
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-blush-100 text-pastel-rose text-xs font-bold tracking-wider mb-1">
-              ✨ PROJECTOR LIVE BIG SCREEN · 全場大螢幕投影 ✨
-            </span>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-0.5 rounded-full bg-blush-100 text-pastel-rose text-xs font-bold tracking-wider">
+                ✨ LIVE BIG SCREEN · 全場大螢幕投影 ✨
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full bg-white/60 border border-blush-200 text-[11px] font-mono font-bold text-brown-muted">
+                房號: {roomId}
+              </span>
+            </div>
             <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black text-brown-text">
-              星唯 1 歲抓周大典 · 即時預測戰況
+              {babyName} 1 歲抓周大典 · 即時預測戰況
             </h1>
           </div>
         </div>
@@ -177,16 +212,17 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({ guesses, onOpenAdm
 
           <button
             onClick={onOpenAdmin}
-            className="p-2.5 rounded-2xl liquid-glass text-brown-muted hover:text-pastel-coral transition-colors"
-            title="主持人控制台"
+            className="p-2.5 rounded-2xl liquid-glass text-brown-muted hover:text-pastel-coral transition-colors flex items-center gap-1.5 font-bold text-xs"
+            title="開啟控制台中控台"
           >
-            ⚙️
+            <Sliders size={18} />
+            <span className="hidden sm:inline">中控後台</span>
           </button>
         </div>
       </header>
 
-      {/* Main 16:9 Screen Split Layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch mb-6">
+      {/* Main Grid View */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 flex-1 items-stretch">
         
         {/* LEFT / MAIN SECTION (7 Columns): Live Chart & Top 3 Spotlight */}
         <div className="xl:col-span-7 flex flex-col gap-6">
@@ -270,7 +306,7 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({ guesses, onOpenAdm
                   <h2 className="font-heading text-xl font-black text-brown-text">
                     全品項票數排行榜 (REAL-TIME RANKING)
                   </h2>
-                  <p className="text-xs text-brown-muted font-cute">前 10 名熱門抓周物品票數分佈</p>
+                  <p className="text-xs text-brown-muted font-cute">實時熱門抓周物品票數分佈</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 text-pastel-coral font-bold font-cute text-xs">
@@ -309,25 +345,29 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({ guesses, onOpenAdm
 
             {/* Headline */}
             <h2 className="font-heading text-2xl sm:text-3xl font-black text-brown-text tracking-tight mb-1">
-              📱 掃碼參加星唯抓周預測
+              📱 掃碼參加{babyName}抓周預測
             </h2>
             <p className="text-xs sm:text-sm font-cute font-bold text-pastel-rose mb-4">
               開啟手機相機對準 QR Code，即刻投下命定三票！
             </p>
 
-            {/* High-Contrast Pure White QR Image Container for Instant Long-Distance Focus */}
+            {/* High-Contrast Dynamic QR Code Container with Baby Avatar Badge */}
             <div className="relative my-2 p-4 bg-white rounded-3xl border-2 border-blush-200 shadow-card-bouncy group">
               <img
-                src={`${base}assets/qrcode.png`}
+                src={qrApiUrl}
                 alt="Scan to Vote QR Code"
                 className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] object-contain rounded-xl"
+                onError={(e) => {
+                  // Fallback to static asset if offline
+                  (e.target as HTMLImageElement).src = `${base}assets/qrcode.png`;
+                }}
               />
               
               {/* Center cute baby badge overlay on QR code */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full p-1 bg-white shadow-md border border-blush-200 pointer-events-none">
                 <img
-                  src={BABY_AVATAR_IMG}
-                  alt="星唯"
+                  src={babyAvatar}
+                  alt={babyName}
                   className="w-full h-full object-cover rounded-full"
                 />
               </div>
@@ -337,8 +377,8 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({ guesses, onOpenAdm
             <div className="mt-3 space-y-1">
               <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-cream-100 border border-blush-200 text-xs font-bold text-brown-text shadow-inner">
                 <Smartphone size={14} className="text-pastel-coral" />
-                <span className="font-mono text-[11px] text-pastel-rose">
-                  fromlifetolines.github.io/baby-web/
+                <span className="font-mono text-[11px] text-pastel-rose break-all">
+                  {guestRoomUrl}
                 </span>
               </div>
               <p className="text-[11px] text-brown-muted font-cute font-medium pt-1">
@@ -368,22 +408,20 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({ guesses, onOpenAdm
                     key={g.id}
                     className="p-2.5 rounded-xl bg-white border border-blush-200 text-xs flex items-center justify-between shadow-sm"
                   >
-                    <span className="font-bold text-brown-text">{g.name}</span>
-                    <span className="text-pastel-coral font-bold text-[11px]">已完成 3 項志業預測 🎀</span>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-pastel-coral" />
+                      <span className="font-bold text-brown-text">{g.name}</span>
+                    </div>
+                    <span className="text-brown-muted text-[11px]">
+                      已完成 3 項預測 ✓
+                    </span>
                   </div>
                 ))
               )}
             </div>
           </div>
-
         </div>
       </div>
-
-      {/* Footer Instructions */}
-      <footer className="liquid-glass p-3.5 rounded-full border-2 border-blush-200 text-center font-cute font-bold text-brown-muted flex items-center justify-center gap-2 shadow-sm text-xs sm:text-sm">
-        <Heart size={16} className="text-pastel-coral fill-pastel-coral" />
-        <span>請貴賓踴躍掃碼預測，大典即將由主持人公布星唯抓周結果並頒發貼圖大獎！</span>
-      </footer>
     </div>
   );
 };

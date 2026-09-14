@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { ZHUAZHOU_ITEMS, ZhuazhouItem, BABY_STICKERS } from '../config/itemsData';
-import { GuessRecord, GameState, WinnerScore } from '../types';
-import { Trophy, Sparkles, Heart, Crown, RotateCcw, PartyPopper } from 'lucide-react';
+import { GuessRecord, GameState, WinnerScore, PartyConfig } from '../types';
+import { Trophy, Sparkles, Heart, Crown, RotateCcw, PartyPopper, Gift } from 'lucide-react';
 
 interface RevealViewProps {
   gameState: GameState;
@@ -11,6 +11,7 @@ interface RevealViewProps {
   currentUser: string;
   onOpenStickerModal: () => void;
   onResetGame?: () => void;
+  partyConfig?: PartyConfig;
 }
 
 export const RevealView: React.FC<RevealViewProps> = ({
@@ -19,6 +20,7 @@ export const RevealView: React.FC<RevealViewProps> = ({
   currentUser,
   onOpenStickerModal,
   onResetGame,
+  partyConfig,
 }) => {
   // Pachinko FEVER 5-Second State Machine: 'gekiatsu' | 'spin' | 'slowdown' | 'jackpot' | null
   const [pachinkoPhase, setPachinkoPhase] = useState<'gekiatsu' | 'spin' | 'slowdown' | 'jackpot' | null>('gekiatsu');
@@ -622,30 +624,69 @@ export const RevealView: React.FC<RevealViewProps> = ({
           </motion.div>
         </div>
 
-        {/* 🎁 Baby Sticker Reward Showcase (Dark Theme) */}
-        <div className="mt-14 text-center border-t border-white/15 pt-8">
-          <h3 className="font-heading text-xl sm:text-2xl font-bold text-amber-300 mb-6 flex items-center justify-center gap-2 drop-shadow-md">
-            <Sparkles size={22} className="text-amber-400" />
-            <span>星唯專屬 LINE 貼圖包 (STICKER REWARDS)</span>
-          </h3>
+        {/* 🎁 Custom Prize or Baby Sticker Reward Showcase (Dark Theme) */}
+        {partyConfig?.prize?.enabled ? (
+          <div className="mt-14 text-center border-t border-white/15 pt-8">
+            <h3 className="font-heading text-xl sm:text-2xl font-bold text-amber-300 mb-2 flex items-center justify-center gap-2 drop-shadow-md">
+              <Gift size={24} className="text-amber-400" />
+              <span>🏆 本場專屬中獎大禮 (PRIZE REWARDS)</span>
+            </h3>
+            <p className="text-xs text-white/70 font-cute mb-6 max-w-lg mx-auto">
+              {partyConfig.prize.description || '猜中抓周品項的幸運預言家，可獲得以下精美禮品！'}
+            </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
-            {BABY_STICKERS.map((sticker) => (
-              <motion.div
-                key={sticker.id}
-                whileHover={{ scale: 1.05, rotate: 1.5 }}
-                onClick={onOpenStickerModal}
-                className="p-5 rounded-[28px] bg-white/10 backdrop-blur-xl border-2 border-pink-400/30 hover:border-amber-400 cursor-pointer text-center shadow-lg transition-all"
-              >
-                <div className="w-24 h-24 mx-auto mb-3 p-2 bg-white rounded-2xl flex items-center justify-center shadow-inner">
-                  <img src={sticker.image} alt={sticker.name} className="w-full h-full object-contain" />
+            <div className="max-w-xl mx-auto p-6 sm:p-8 rounded-[32px] bg-gradient-to-r from-amber-500/20 via-rose-500/10 to-amber-500/20 backdrop-blur-xl border-2 border-amber-400/50 shadow-2xl relative overflow-hidden">
+              <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+                {partyConfig.prize.imageUrl && (
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-amber-300 shadow-md shrink-0 bg-white/10 p-1">
+                    <img 
+                      src={partyConfig.prize.imageUrl} 
+                      alt="Prize" 
+                      className="w-full h-full object-cover rounded-xl"
+                    />
+                  </div>
+                )}
+                <div className="space-y-2 flex-1">
+                  <span className="px-3 py-1 rounded-full bg-amber-400 text-amber-950 font-heading font-black text-xs">
+                    幸運預測大獎
+                  </span>
+                  <h4 className="font-heading text-2xl font-black text-white">
+                    {partyConfig.prize.title}
+                  </h4>
+                  {partyConfig.prize.claimedNote && (
+                    <p className="text-xs sm:text-sm text-amber-200/90 font-cute font-bold bg-black/40 px-3.5 py-2 rounded-xl border border-amber-400/30">
+                      📣 {partyConfig.prize.claimedNote}
+                    </p>
+                  )}
                 </div>
-                <h4 className="font-heading text-lg font-black text-amber-300">{sticker.tag}</h4>
-                <p className="text-xs text-pink-200 mt-1 font-cute">{sticker.description}</p>
-              </motion.div>
-            ))}
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="mt-14 text-center border-t border-white/15 pt-8">
+            <h3 className="font-heading text-xl sm:text-2xl font-bold text-amber-300 mb-6 flex items-center justify-center gap-2 drop-shadow-md">
+              <Sparkles size={22} className="text-amber-400" />
+              <span>{partyConfig?.babyName || '星唯'}專屬 LINE 貼圖包 (STICKER REWARDS)</span>
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
+              {BABY_STICKERS.map((sticker) => (
+                <motion.div
+                  key={sticker.id}
+                  whileHover={{ scale: 1.05, rotate: 1.5 }}
+                  onClick={onOpenStickerModal}
+                  className="p-5 rounded-[28px] bg-white/10 backdrop-blur-xl border-2 border-pink-400/30 hover:border-amber-400 cursor-pointer text-center shadow-lg transition-all"
+                >
+                  <div className="w-24 h-24 mx-auto mb-3 p-2 bg-white rounded-2xl flex items-center justify-center shadow-inner">
+                    <img src={sticker.image} alt={sticker.name} className="w-full h-full object-contain" />
+                  </div>
+                  <h4 className="font-heading text-lg font-black text-amber-300">{sticker.tag}</h4>
+                  <p className="text-xs text-pink-200 mt-1 font-cute">{sticker.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
       </motion.div>
     </div>
   );

@@ -10,7 +10,8 @@ import {
   Check, 
   Lock, 
   ShieldCheck,
-  Trash2
+  Trash2,
+  Sliders
 } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -20,6 +21,7 @@ interface AdminPanelProps {
   onTriggerReveal: (actualItems: string[]) => void;
   onResetGame: () => void;
   onResetAllData: () => Promise<void>;
+  onOpenCustomizer?: () => void;
   initialUnlocked?: boolean;
 }
 
@@ -158,6 +160,36 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </form>
             ) : (
               <div className="space-y-6">
+                {/* SaaS Studio Action */}
+                {onOpenCustomizer && (
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 via-rose-50 to-amber-50 border-2 border-amber-300 flex items-center justify-between shadow-sm">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-amber-400 text-amber-950 shadow-xs">
+                        <Sliders size={20} />
+                      </div>
+                      <div>
+                        <h4 className="font-heading font-black text-sm text-brown-text">
+                          派對客製化中控台 (STUDIO)
+                        </h4>
+                        <p className="text-[11px] text-brown-muted font-cute">
+                          自訂寶寶姓名照片、主題色、勾選道具庫與中獎禮品
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onOpenCustomizer();
+                        onClose();
+                      }}
+                      className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-heading font-black text-xs shadow-md transition-all cursor-pointer"
+                    >
+                      開啟客製設定 🎨
+                    </button>
+                  </div>
+                )}
+
                 {/* Step 1: Select 3 Actual Picked Items */}
                 <div>
                   <div className="flex items-center justify-between mb-3">

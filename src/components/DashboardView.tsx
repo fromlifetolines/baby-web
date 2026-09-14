@@ -12,7 +12,7 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { ZHUAZHOU_ITEMS, ZhuazhouItem, BABY_STICKERS, BABY_AVATAR_IMG } from '../config/itemsData';
-import { GuessRecord } from '../types';
+import { GuessRecord, PartyConfig } from '../types';
 import { 
   Sparkles, 
   Flame, 
@@ -34,6 +34,7 @@ interface DashboardViewProps {
   onOpenStickerModal: () => void;
   onOpenAdmin: () => void;
   onSwitchToProjector: () => void;
+  partyConfig?: PartyConfig;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -43,6 +44,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenStickerModal,
   onOpenAdmin,
   onSwitchToProjector,
+  partyConfig,
 }) => {
   // Compute votes
   const { sortedStats, top3Items, totalVotesCount } = useMemo(() => {
@@ -149,16 +151,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
   };
 
+  const babyName = partyConfig?.babyName || '星唯';
+  const babyAvatar = partyConfig?.babyAvatar || BABY_AVATAR_IMG;
+
   const userItemsData = userSelections
     .map((id) => ZHUAZHOU_ITEMS.find((item) => item.id === id))
     .filter(Boolean) as ZhuazhouItem[];
 
   return (
     <div className="min-h-screen pb-24 pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative">
-      {/* Top Banner with Baby Xing-Wei Avatar Bubble */}
+      {/* Top Banner with Baby Avatar Bubble */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-4">
-          {/* Baby Avatar Bubble (08.png) with soft glowing border */}
+          {/* Baby Avatar Bubble with soft glowing border */}
           <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0">
             <motion.div
               animate={{
@@ -177,11 +182,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             >
               <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-white shadow-inner">
                 <img
-                  src={BABY_AVATAR_IMG}
-                  alt="星唯"
+                  src={babyAvatar}
+                  alt={babyName}
                   className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
                   onClick={onOpenStickerModal}
-                  title="星唯抓周紀念"
+                  title={`${babyName}抓周紀念`}
                 />
               </div>
             </motion.div>
@@ -198,7 +203,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </span>
             </div>
             <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-black text-brown-text">
-              星唯抓周即時預測榜單 🌸
+              {babyName}抓周即時預測榜單 🌸
             </h1>
           </div>
         </div>
