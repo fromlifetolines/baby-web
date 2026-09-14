@@ -179,7 +179,7 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
             <motion.div
               animate={{ rotate: [0, 3, -3, 0] }}
               transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
-              className="w-full h-full rounded-full p-1 bg-gradient-to-tr from-pastel-coral via-pastel-pink to-cream-200 shadow-soft-pink"
+              className="w-full h-full rounded-full p-1 bg-gradient-to-tr from-amber-400 via-rose-400 to-amber-200 shadow-md"
             >
               <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-white shadow-inner">
                 <img
@@ -193,14 +193,14 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
 
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-0.5 rounded-full bg-blush-100 text-pastel-rose text-xs font-bold tracking-wider">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-0.5 rounded-full bg-white/20 border border-current text-xs font-bold tracking-wider opacity-90">
                 ✨ LIVE BIG SCREEN · 全場大螢幕投影 ✨
               </span>
-              <span className="px-2.5 py-0.5 rounded-full bg-white/60 border border-blush-200 text-[11px] font-mono font-bold text-brown-muted">
+              <span className="px-2.5 py-0.5 rounded-full bg-white/20 border border-current/20 text-[11px] font-mono font-bold">
                 房號: {roomId}
               </span>
             </div>
-            <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black text-brown-text">
+            <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black drop-shadow-sm">
               {babyName} 1 歲抓周大典 · 即時預測戰況
             </h1>
           </div>
@@ -229,13 +229,13 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
         {/* LEFT / MAIN SECTION (7 Columns): Live Chart & Top 3 Spotlight */}
         <div className="xl:col-span-7 flex flex-col gap-6">
           {/* Top 3 Popularity Spotlight Cards */}
-          <div className="liquid-glass p-5 rounded-[32px] border-2 border-blush-300 shadow-xl bg-white/90">
+          <div className="liquid-glass p-5 rounded-[32px] shadow-xl">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-heading text-lg sm:text-xl font-black text-brown-text flex items-center gap-2">
-                <Trophy size={20} className="text-pastel-coral" />
+              <h3 className="font-heading text-lg sm:text-xl font-black flex items-center gap-2">
+                <Trophy size={20} className="text-amber-400" />
                 <span>{guesses.length === 0 ? '人氣預測榜' : '人氣榜首前三名 (TOP 3)'}</span>
               </h3>
-              <span className="text-xs font-cute text-brown-muted font-bold">
+              <span className="text-xs font-cute font-bold opacity-75">
                 {guesses.length === 0 ? '等待首投' : '即時票選領先'}
               </span>
             </div>
@@ -244,57 +244,50 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-6 rounded-2xl bg-gradient-to-r from-blush-50 via-cream-100 to-blush-50 border-2 border-dashed border-blush-300 text-center flex flex-col items-center justify-center gap-2 shadow-inner"
+                className="p-6 rounded-2xl bg-white/10 border-2 border-dashed border-current/20 text-center flex flex-col items-center justify-center gap-2 shadow-inner"
               >
-                <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white text-pastel-coral text-xs font-heading font-black shadow-sm">
-                  <Sparkles size={14} className="text-pastel-coral" />
-                  <span>🏆 人氣預測榜</span>
+                <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 text-xs font-heading font-black shadow-sm">
+                  <Sparkles size={14} />
+                  <span>第一位預測先鋒席位虛位以待！</span>
                 </div>
-                <h4 className="font-heading text-xl sm:text-2xl font-black text-brown-text mt-1">
-                  ✨ 歡迎親友投下第一個預測！ ✨
-                </h4>
-                <p className="text-xs sm:text-sm font-cute font-bold text-pastel-rose">
-                  快掃描右側 QR Code，投下第一票成為首位預言家！
+                <p className="text-xs font-cute opacity-80 mt-1">
+                  請貴賓們開啟手機相機掃描右側 QR Code，立即為{babyName}投下神聖的一票！
                 </p>
               </motion.div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 {top3Items.map((item, idx) => {
-                  const medals = ['🥇 第一名', '🥈 第二名', '🥉 第三名'];
-                  const bgs = [
-                    'bg-amber-50/80 border-amber-300', 
-                    'bg-slate-50/80 border-slate-300', 
-                    'bg-orange-50/80 border-orange-300'
-                  ];
+                  const rankBadge = idx === 0 ? '🥇 榜首' : idx === 1 ? '🥈 第二' : '🥉 第三';
+                  const rankGlow =
+                    idx === 0
+                      ? 'border-amber-400 shadow-lg'
+                      : idx === 1
+                      ? 'border-slate-300'
+                      : 'border-amber-600/60';
+
                   return (
-                    <div
+                    <motion.div
                       key={item.id}
-                      className={`p-3 rounded-2xl border-2 ${bgs[idx]} flex flex-col justify-between shadow-sm`}
+                      layout
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className={`p-3.5 rounded-2xl border-2 flex flex-col items-center text-center justify-between gap-1.5 relative overflow-hidden bg-white/10 ${rankGlow}`}
                     >
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[11px] font-heading font-black text-brown-text px-2 py-0.5 rounded-md bg-white">
-                          {medals[idx]}
-                        </span>
-                        <span className="font-heading font-black text-base text-pastel-coral">
-                          {item.count} 票
-                        </span>
+                      <span className="text-[11px] font-heading font-black px-2 py-0.5 rounded-full bg-white/20">
+                        {rankBadge}
+                      </span>
+                      <div className="w-14 h-14 p-1 my-0.5 rounded-xl bg-white/20 flex items-center justify-center">
+                        {item.iconPath ? (
+                          <img src={item.iconPath} alt="" className="w-full h-full object-contain" />
+                        ) : (
+                          <span className="text-3xl">{item.symbol || '🎁'}</span>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2.5 my-1">
-                        <div className="w-10 h-10 p-1 bg-white rounded-xl flex items-center justify-center border border-blush-200 shrink-0">
-                          {item.iconPath ? (
-                            <img src={item.iconPath} alt="" className="w-full h-full object-contain" />
-                          ) : (
-                            <span className="text-xl select-none">{item.symbol || '🎁'}</span>
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="font-heading font-black text-brown-text text-sm">
-                            {item.name}
-                          </h4>
-                          <p className="text-[11px] font-bold text-pastel-rose">{item.meaning}</p>
-                        </div>
+                      <h4 className="font-heading font-black text-sm line-clamp-1">{item.name}</h4>
+                      <div className="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-mono font-black text-xs shadow-sm">
+                        {item.count} 票
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
@@ -302,21 +295,21 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
           </div>
 
           {/* Real-time Horizontal Bar Chart */}
-          <div className="liquid-glass p-6 sm:p-7 rounded-[32px] border-2 border-blush-300 shadow-xl flex-1 flex flex-col justify-between bg-white/90 min-h-[380px]">
+          <div className="liquid-glass p-6 sm:p-7 rounded-[32px] shadow-xl flex-1 flex flex-col justify-between min-h-[380px]">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-blush-100 text-pastel-coral">
+                <div className="p-2 rounded-xl bg-amber-400 text-slate-950 font-black">
                   <Flame size={20} />
                 </div>
                 <div>
-                  <h2 className="font-heading text-xl font-black text-brown-text">
+                  <h2 className="font-heading text-xl font-black">
                     全品項票數排行榜 (REAL-TIME RANKING)
                   </h2>
-                  <p className="text-xs text-brown-muted font-cute">實時熱門抓周物品票數分佈</p>
+                  <p className="text-xs opacity-75 font-cute">實時熱門抓周物品票數分佈</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-pastel-coral font-bold font-cute text-xs">
-                <span className="w-2.5 h-2.5 rounded-full bg-pastel-coral animate-ping" />
+              <div className="flex items-center gap-2 text-amber-400 font-bold font-cute text-xs">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
                 <span>實時動態連線</span>
               </div>
             </div>
@@ -334,7 +327,7 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="liquid-glass p-6 sm:p-8 rounded-[36px] border-2 border-blush-300 shadow-2xl relative overflow-hidden bg-white/95 text-center flex flex-col items-center justify-between"
+            className="liquid-glass p-6 sm:p-8 rounded-[36px] shadow-2xl relative overflow-hidden text-center flex flex-col items-center justify-between"
             style={{
               boxShadow: '0 20px 40px -15px rgba(255, 111, 97, 0.2), 0 0 0 1px rgba(255, 182, 193, 0.4)',
             }}

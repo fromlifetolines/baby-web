@@ -171,12 +171,30 @@ export const AgencyDashboardView: React.FC<AgencyDashboardViewProps> = ({
               autoFocus
             />
             {errorMsg && <p className="text-xs text-rose-400 font-bold">⚠️ {errorMsg}</p>}
+            
             <button
               type="submit"
               className="w-full py-4 rounded-2xl bg-amber-400 text-amber-950 font-heading font-black text-sm shadow-lg hover:bg-amber-300 transition-all cursor-pointer"
             >
               進入公關管理看板 (ENTER)
             </button>
+
+            {/* Quick Demo Key Fill for convenience */}
+            <div className="pt-2 flex items-center justify-center gap-2">
+              <span className="text-xs text-white/50">快速填入公關測試密鑰：</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setAgencyKey('vip888');
+                  setIsAuthorized(true);
+                  localStorage.setItem('babyweb_agency_auth', 'true');
+                  setErrorMsg('');
+                }}
+                className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-amber-300 text-xs font-mono font-bold cursor-pointer border border-white/20"
+              >
+                vip888 (一鍵解鎖)
+              </button>
+            </div>
           </form>
         </div>
       ) : (

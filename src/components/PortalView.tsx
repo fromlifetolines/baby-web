@@ -101,14 +101,14 @@ export const PortalView: React.FC<PortalViewProps> = ({
         </div>
 
         {/* Header Title */}
-        <div className="space-y-1.5 mb-6">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-blush-100 text-pastel-rose text-xs font-bold tracking-wider">
+        <div className="space-y-2 mb-6">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/40 border border-current text-xs font-bold tracking-wider opacity-90">
             🌸 {babyName}'s 1st Birthday Party 🌸
           </span>
-          <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-black text-brown-text leading-tight tracking-tight">
+          <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-black leading-tight tracking-tight drop-shadow-sm">
             {babyName} 1 歲抓周預測大典
           </h1>
-          <p className="font-cute text-xs sm:text-sm md:text-base text-brown-muted font-medium pt-1 tracking-tight break-keep max-w-md mx-auto">
+          <p className="font-cute text-xs sm:text-sm md:text-base opacity-80 font-medium pt-1 tracking-tight break-keep max-w-md mx-auto">
             {subtitle}
           </p>
         </div>
@@ -116,8 +116,8 @@ export const PortalView: React.FC<PortalViewProps> = ({
         {/* Input Form */}
         <form onSubmit={handleSubmit} className="space-y-5 text-left mt-6">
           <div>
-            <label className="block text-xs font-bold text-brown-muted mb-2 flex items-center gap-1.5 font-cute">
-              <User size={14} className="text-pastel-coral" />
+            <label className="block text-xs font-bold opacity-80 mb-2 flex items-center gap-1.5 font-cute">
+              <User size={14} />
               請輸入您的稱謂與姓名 (YOUR NAME & TITLE)
             </label>
             <div className="relative">
@@ -129,7 +129,7 @@ export const PortalView: React.FC<PortalViewProps> = ({
                   if (errorMsg) setErrorMsg('');
                 }}
                 placeholder="例如：舅舅 Howard、阿嬤、奶奶、堂哥..."
-                className="w-full px-5 py-4 rounded-2xl bg-white/90 border-2 border-blush-200 text-brown-text placeholder-brown-muted/50 focus:outline-none focus:border-pastel-coral focus:ring-4 focus:ring-pastel-pink/20 transition-all font-body text-base shadow-sm"
+                className="w-full px-5 py-4 rounded-2xl bg-white/90 dark:bg-black/40 border-2 border-current/30 text-current placeholder-current/40 focus:outline-none focus:border-current focus:ring-4 focus:ring-current/20 transition-all font-body text-base shadow-sm"
                 autoFocus
               />
             </div>
@@ -142,7 +142,7 @@ export const PortalView: React.FC<PortalViewProps> = ({
 
           {/* Quick Presets */}
           <div>
-            <span className="text-[11px] text-brown-muted block mb-2 font-bold">
+            <span className="text-[11px] opacity-70 block mb-2 font-bold">
               快速稱謂選擇 (QUICK PRESETS):
             </span>
             <div className="flex flex-wrap gap-2">
@@ -153,8 +153,8 @@ export const PortalView: React.FC<PortalViewProps> = ({
                   onClick={() => handleChipClick(title)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-cute font-bold transition-all ${
                     selectedPrefix === title
-                      ? 'bg-pastel-coral text-white shadow-soft-coral scale-105'
-                      : 'bg-white/80 text-brown-muted hover:bg-blush-100 hover:text-brown-text border border-blush-200'
+                      ? 'bg-amber-400 text-slate-950 shadow-md scale-105 font-black'
+                      : 'bg-white/70 dark:bg-white/10 text-current/80 hover:bg-white border border-current/20'
                   }`}
                 >
                   {title}
@@ -166,7 +166,7 @@ export const PortalView: React.FC<PortalViewProps> = ({
           {/* Submit Action */}
           <button
             type="submit"
-            className="w-full py-4 px-6 rounded-2xl pastel-btn-primary font-heading text-lg font-black tracking-wider flex items-center justify-center gap-2 group cursor-pointer shadow-lg hover:shadow-xl mt-4"
+            className="w-full py-4 px-6 rounded-2xl pastel-btn-primary font-heading text-lg font-black tracking-wider flex items-center justify-center gap-2 group cursor-pointer shadow-xl hover:scale-[1.02] active:scale-95 transition-all mt-4"
           >
             <span>進入預測大典 (ENTER)</span>
             <ArrowRight size={20} className="group-hover:translate-x-1.5 transition-transform" />

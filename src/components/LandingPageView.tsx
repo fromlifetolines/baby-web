@@ -20,15 +20,13 @@ import {
 } from 'lucide-react';
 
 interface LandingPageViewProps {
-  onStartDemo: () => void;
-  onEnterRoom: (roomId: string) => void;
-  onOpenAgency: () => void;
+  onEnterDemoRoom: (roomId: string) => void;
+  onOpenAgencyPortal: () => void;
 }
 
 export const LandingPageView: React.FC<LandingPageViewProps> = ({
-  onStartDemo,
-  onEnterRoom,
-  onOpenAgency,
+  onEnterDemoRoom,
+  onOpenAgencyPortal,
 }) => {
   const [customRoomInput, setCustomRoomInput] = useState('');
 
@@ -56,7 +54,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       const generatedRoom = `baby_${Math.random().toString(36).substring(2, 7)}`;
       setIsProcessingPayment(false);
       setPaymentSuccessData({ roomId: generatedRoom });
-    }, 1500);
+    }, 1200);
   };
 
   return (
@@ -83,7 +81,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
 
         <div className="flex items-center gap-3">
           <button
-            onClick={onOpenAgency}
+            onClick={onOpenAgencyPortal}
             className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold font-heading text-amber-200 border border-amber-400/30 transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <Building2 size={14} />
@@ -92,7 +90,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           </button>
 
           <button
-            onClick={onStartDemo}
+            onClick={() => onEnterDemoRoom('demo')}
             className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-amber-950 font-heading font-black text-xs shadow-md transition-all cursor-pointer"
           >
             免費體驗試玩
@@ -139,7 +137,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
         >
           <button
-            onClick={onStartDemo}
+            onClick={() => onEnterDemoRoom('demo')}
             className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-amber-950 font-heading font-black text-base sm:text-lg flex items-center justify-center gap-2 shadow-2xl shadow-amber-400/40 hover:scale-105 active:scale-95 transition-all cursor-pointer"
           >
             <Play size={20} className="fill-amber-950" />
@@ -160,7 +158,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (customRoomInput.trim()) onEnterParty(customRoomInput.trim().toLowerCase());
+              if (customRoomInput.trim()) onEnterDemoRoom(customRoomInput.trim().toLowerCase());
             }}
             className="flex items-center gap-2 p-1.5 rounded-2xl bg-white/5 border border-white/15 focus-within:border-amber-400 transition-all"
           >
@@ -258,7 +256,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               </span>
               <h3 className="font-heading text-2xl font-black text-white">單場家庭尊榮版</h3>
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-white font-mono">NT$ 599</span>
+                <span className="text-4xl font-black text-white font-mono">NT$ 399</span>
                 <span className="text-xs text-white/50 font-cute">/ 單場派對</span>
               </div>
               <ul className="space-y-2.5 text-xs text-white/70 font-cute pt-2">
@@ -272,10 +270,10 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             </div>
 
             <button
-              onClick={() => setCheckoutPlan({ name: '單場家庭尊榮版', price: 'NT$ 599', planType: 'single' })}
+              onClick={() => setCheckoutPlan({ name: '單場家庭尊榮版', price: 'NT$ 399', planType: 'single' })}
               className="w-full py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-heading font-black text-sm shadow-md transition-all cursor-pointer"
             >
-              立即開通此方案
+              立即開通此方案 (NT$ 399)
             </button>
           </div>
 
@@ -455,7 +453,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
 
                   <button
                     onClick={() => {
-                      onEnterParty(paymentSuccessData.roomId);
+                      onEnterDemoRoom(paymentSuccessData.roomId);
                       setCheckoutPlan(null);
                     }}
                     className="w-full py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-heading font-black text-sm shadow-lg transition-all cursor-pointer"

@@ -249,12 +249,12 @@ export const App: React.FC = () => {
   const themeClass = isRevealActive 
     ? 'bg-[#0a0012] text-white' 
     : themeColor === 'gold-dark'
-    ? 'bg-[#0A0503] text-amber-100'
+    ? 'theme-gold-dark'
     : themeColor === 'blush-pink'
-    ? 'bg-[#FFF5F7] text-brown-text'
+    ? 'theme-blush-pink'
     : themeColor === 'baby-blue'
-    ? 'bg-[#F0F9FF] text-slate-800'
-    : 'bg-[#FAF7F2] text-[#4A3B32]';
+    ? 'theme-baby-blue'
+    : 'theme-warm-cream';
 
   // If in Landing Mode -> Render Landing Page with Customer Support
   if (view === 'landing' || appMode === 'landing') {
@@ -283,11 +283,17 @@ export const App: React.FC = () => {
     return (
       <div className="relative min-h-screen bg-[#0A0714] text-white">
         <AgencyDashboardView
-          onBackToLanding={() => {
+          onBackToMain={() => {
             const url = new URL(window.location.href);
             url.searchParams.delete('agency');
             url.searchParams.delete('room');
             window.location.href = url.pathname;
+          }}
+          onEnterParty={(roomId) => {
+            const url = new URL(window.location.href);
+            url.searchParams.set('room', roomId);
+            url.searchParams.delete('agency');
+            window.location.href = url.toString();
           }}
         />
         <CustomerSupportWidget />

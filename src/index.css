@@ -6,61 +6,123 @@
 
 @layer base {
   body {
-    @apply bg-cream-50 text-brown-text font-body antialiased overflow-x-hidden;
-    background-color: #FFFAF0;
-    background-image: 
-      radial-gradient(circle at 10% 20%, rgba(255, 182, 193, 0.35) 0%, transparent 40%),
-      radial-gradient(circle at 90% 10%, rgba(255, 228, 225, 0.45) 0%, transparent 45%),
-      radial-gradient(circle at 50% 85%, rgba(255, 240, 245, 0.55) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(255, 182, 193, 0.25) 0%, transparent 40%);
-    background-attachment: fixed;
+    @apply text-brown-text font-body antialiased overflow-x-hidden transition-colors duration-500;
   }
 }
 
+/* ==========================================================================
+   4 DISTINCT THEME ATMOSPHERES (全面深層氛圍染色)
+   ========================================================================== */
+
+/* 1. 奢華黑金 (Gold-Dark / Royal Banquet) */
+.theme-gold-dark {
+  --bg-main: #090302;
+  --card-bg: rgba(26, 15, 10, 0.85);
+  --card-border: rgba(245, 158, 11, 0.45);
+  --card-glow: 0 12px 36px rgba(217, 119, 6, 0.25);
+  --text-main: #FFFBEB;
+  --text-muted: #FDE68A;
+  --accent-color: #F59E0B;
+  --accent-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 50%, #B45309 100%);
+  --selected-border: #FCD34D;
+  --selected-glow: 0 0 25px rgba(245, 158, 11, 0.65);
+  background-color: #090302 !important;
+  color: #FFFBEB !important;
+}
+
+/* 2. 櫻花粉嫩 (Blush-Pink / Princess Sakura) */
+.theme-blush-pink {
+  --bg-main: #FFF0F5;
+  --card-bg: rgba(255, 255, 255, 0.88);
+  --card-border: rgba(244, 63, 94, 0.35);
+  --card-glow: 0 12px 36px rgba(244, 63, 94, 0.18);
+  --text-main: #4C0519;
+  --text-muted: #9F1239;
+  --accent-color: #F43F5E;
+  --accent-gradient: linear-gradient(135deg, #F43F5E 0%, #FB7185 50%, #FDA4AF 100%);
+  --selected-border: #E11D48;
+  --selected-glow: 0 0 25px rgba(244, 63, 94, 0.5);
+  background-color: #FFF0F5 !important;
+  color: #4C0519 !important;
+}
+
+/* 3. 晴空蔚藍 (Baby-Blue / Ocean Prince) */
+.theme-baby-blue {
+  --bg-main: #F0F9FF;
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --card-border: rgba(14, 165, 233, 0.4);
+  --card-glow: 0 12px 36px rgba(14, 165, 233, 0.2);
+  --text-main: #082F49;
+  --text-muted: #0369A1;
+  --accent-color: #0284C7;
+  --accent-gradient: linear-gradient(135deg, #0284C7 0%, #38BDF8 50%, #7DD3FC 100%);
+  --selected-border: #0284C7;
+  --selected-glow: 0 0 25px rgba(2, 132, 199, 0.55);
+  background-color: #F0F9FF !important;
+  color: #082F49 !important;
+}
+
+/* 4. 溫煦大地 (Warm-Cream / Nordic Woodland) */
+.theme-warm-cream {
+  --bg-main: #FAF5EE;
+  --card-bg: rgba(255, 252, 247, 0.92);
+  --card-border: rgba(180, 83, 9, 0.35);
+  --card-glow: 0 12px 36px rgba(180, 83, 9, 0.15);
+  --text-main: #292524;
+  --text-muted: #78350F;
+  --accent-color: #D97706;
+  --accent-gradient: linear-gradient(135deg, #D97706 0%, #F59E0B 50%, #FDE68A 100%);
+  --selected-border: #D97706;
+  --selected-glow: 0 0 25px rgba(217, 119, 6, 0.45);
+  background-color: #FAF5EE !important;
+  color: #292524 !important;
+}
+
 @layer components {
-  /* Premium Baby Boutique Frosted Glass */
+  /* Dynamic Theme Aware Frosted Glass */
   .liquid-glass {
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 2px solid rgba(255, 182, 193, 0.45);
-    box-shadow: 0 12px 36px rgba(255, 182, 193, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+    background: var(--card-bg, rgba(255, 255, 255, 0.78));
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 2px solid var(--card-border, rgba(255, 182, 193, 0.45));
+    box-shadow: var(--card-glow, 0 12px 36px rgba(255, 182, 193, 0.2)), inset 0 1px 2px rgba(255, 255, 255, 0.8);
     border-radius: 28px;
     position: relative;
     overflow: hidden;
+    transition: all 0.3s ease;
   }
   
-  /* Selected State - Soft Coral & Rose Gold Glow */
+  /* Selected State - Glow in Active Theme Accent */
   .liquid-glass.selected {
-    border-color: #FF6F61;
-    background: rgba(255, 255, 255, 0.88);
-    box-shadow: 0 0 25px rgba(255, 111, 97, 0.35), inset 0 0 15px rgba(255, 182, 193, 0.3);
+    border-color: var(--selected-border, #FF6F61) !important;
+    background: var(--card-bg, rgba(255, 255, 255, 0.95)) !important;
+    box-shadow: var(--selected-glow, 0 0 25px rgba(255, 111, 97, 0.5)) !important;
   }
 
   .liquid-glass-accent {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 240, 245, 0.8) 100%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 2px solid rgba(255, 111, 97, 0.4);
-    box-shadow: 0 12px 32px rgba(255, 111, 97, 0.18);
+    background: var(--card-bg, rgba(255, 255, 255, 0.9));
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 2px solid var(--card-border, rgba(255, 111, 97, 0.4));
+    box-shadow: var(--card-glow, 0 12px 32px rgba(255, 111, 97, 0.18));
     border-radius: 28px;
   }
 
   .cute-pill {
-    background: rgba(255, 255, 255, 0.85);
-    border: 1.5px solid rgba(255, 182, 193, 0.6);
-    box-shadow: 0 4px 12px rgba(255, 182, 193, 0.2);
+    background: var(--card-bg, rgba(255, 255, 255, 0.85));
+    border: 1.5px solid var(--card-border, rgba(255, 182, 193, 0.6));
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     border-radius: 9999px;
   }
 
   .pastel-btn-primary {
-    background: linear-gradient(135deg, #FF6F61 0%, #FFB6C1 100%);
-    box-shadow: 0 8px 24px rgba(255, 111, 97, 0.35);
+    background: var(--accent-gradient, linear-gradient(135deg, #FF6F61 0%, #FFB6C1 100%));
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     color: #FFFFFF;
   }
   .pastel-btn-primary:hover {
-    background: linear-gradient(135deg, #F43F5E 0%, #FFA0B0 100%);
-    box-shadow: 0 12px 28px rgba(255, 111, 97, 0.45);
+    filter: brightness(1.1);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
     transform: translateY(-1px);
   }
 }
