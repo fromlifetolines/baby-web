@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { ZHUAZHOU_ITEMS, ZhuazhouItem, BABY_STICKERS } from '../config/itemsData';
 import { GuessRecord, GameState, WinnerScore, PartyConfig } from '../types';
-import { Trophy, Sparkles, Heart, Crown, RotateCcw, PartyPopper, Gift } from 'lucide-react';
+import { Trophy, Sparkles, Heart, Crown, RotateCcw, PartyPopper, Gift, Award, Download } from 'lucide-react';
+import { CertificateModal } from './CertificateModal';
 
 interface RevealViewProps {
   gameState: GameState;
@@ -22,6 +23,7 @@ export const RevealView: React.FC<RevealViewProps> = ({
   onResetGame,
   partyConfig,
 }) => {
+  const [isCertOpen, setIsCertOpen] = useState(false);
   // Pachinko FEVER 5-Second State Machine: 'gekiatsu' | 'spin' | 'slowdown' | 'jackpot' | null
   const [pachinkoPhase, setPachinkoPhase] = useState<'gekiatsu' | 'spin' | 'slowdown' | 'jackpot' | null>('gekiatsu');
   const [isAnimationDone, setIsAnimationDone] = useState(false);
@@ -696,6 +698,35 @@ export const RevealView: React.FC<RevealViewProps> = ({
             </div>
           </div>
         )}
+
+        {/* Certificate Export CTA Banner */}
+        <div className="mt-12 text-center p-6 rounded-3xl bg-gradient-to-r from-amber-500/20 via-pink-500/20 to-indigo-500/20 border border-amber-300/40 shadow-2xl">
+          <h4 className="font-heading text-xl sm:text-2xl font-black text-amber-300 mb-2">
+            📜 典藏本場抓周歷史時刻！
+          </h4>
+          <p className="text-xs sm:text-sm text-white/80 font-cute mb-4">
+            自動產生高畫質榮譽榜紀念證書，含抓中品項、預言家榜單與專屬禮品，一鍵下載分享至 IG / LINE！
+          </p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setIsCertOpen(true)}
+            className="px-8 py-3.5 rounded-full bg-gradient-to-r from-amber-400 via-pink-400 to-rose-400 text-slate-900 font-heading font-black text-sm sm:text-base shadow-xl hover:shadow-amber-400/30 transition-all cursor-pointer inline-flex items-center gap-2"
+          >
+            <span>📜</span>
+            <span>產生並下載抓周榮譽紀念證書</span>
+            <span>✨</span>
+          </motion.button>
+        </div>
+
+        {/* Certificate Modal */}
+        <CertificateModal
+          isOpen={isCertOpen}
+          onClose={() => setIsCertOpen(false)}
+          partyConfig={partyConfig}
+          actualItemIds={gameState.actualItems || []}
+          champions={results.champions.map(c => c.name)}
+        />
       </motion.div>
     </div>
   );

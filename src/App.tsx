@@ -9,6 +9,9 @@ import { AdminPanel } from './components/AdminPanel';
 import { PartyCustomizerModal } from './components/PartyCustomizerModal';
 import { BabyStickerRewardModal } from './components/BabyStickerRewardModal';
 import { LiquidModal } from './components/LiquidModal';
+import { LandingPageView } from './components/LandingPageView';
+import { AgencyDashboardView } from './components/AgencyDashboardView';
+import { CustomerSupportWidget } from './components/CustomerSupportWidget';
 import { 
   subscribeToGuesses, 
   subscribeToGameState, 
@@ -20,7 +23,7 @@ import {
   DEFAULT_PARTY_CONFIG
 } from './config/firebase';
 import { GuessRecord, GameState, ViewState, AppMode, PartyConfig } from './types';
-import { Settings, Sparkles, Monitor, Home, Heart, Sliders } from 'lucide-react';
+import { Settings, Sparkles, Monitor, Home, Heart, Sliders, Globe } from 'lucide-react';
 
 export const App: React.FC = () => {
   // Mode & Room from URL query params
@@ -65,6 +68,21 @@ export const App: React.FC = () => {
     const viewParam = params.get('view');
     const adminParam = params.get('admin');
     const roomParam = params.get('room');
+    const agencyParam = params.get('agency');
+
+    // If explicit agency view requested
+    if (agencyParam !== null) {
+      setAppMode('agency');
+      setView('agency');
+      return;
+    }
+
+    // If no room is specified in URL and no projector view -> show official SaaS Landing Page
+    if (!roomParam && !viewParam && adminParam === null) {
+      setAppMode('landing');
+      setView('landing');
+      return;
+    }
 
     const activeRoom = roomParam ? roomParam.trim().toLowerCase() : 'xingwei';
     setCurrentRoomId(activeRoom);
@@ -82,6 +100,8 @@ export const App: React.FC = () => {
 
     if (viewParam === 'projector') {
       setAppMode('projector');
+    } else {
+      setAppMode('guest');
     }
 
     if (adminParam === '0819') {
@@ -236,6 +256,45 @@ export const App: React.FC = () => {
     ? 'bg-[#F0F9FF] text-slate-800'
     : 'bg-[#FAF7F2] text-[#4A3B32]';
 
+  // If in Landing Mode -> Render Landing Page with Customer Support
+  if (view === 'landing' || appMode === 'landing') {
+    return (
+      <div className="relative min-h-screen bg-[#07050a] text-white">
+        <LandingPageView
+          onEnterDemoRoom={(roomId) => {
+            const url = new URL(window.location.href);
+            url.searchParams.set('room', roomId);
+            url.searchParams.delete('agency');
+            window.location.href = url.toString();
+          }}
+          onOpenAgencyPortal={() => {
+            const url = new URL(window.location.href);
+            url.searchParams.set('agency', 'true');
+            window.location.href = url.toString();
+          }}
+        />
+        <CustomerSupportWidget />
+      </div>
+    );
+  }
+
+  // If in Agency Portal Mode -> Render Agency Multi-Room Management Hub
+  if (view === 'agency' || appMode === 'agency') {
+    return (
+      <div className="relative min-h-screen bg-[#0A0714] text-white">
+        <AgencyDashboardView
+          onBackToLanding={() => {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('agency');
+            url.searchParams.delete('room');
+            window.location.href = url.pathname;
+          }}
+        />
+        <CustomerSupportWidget />
+      </div>
+    );
+  }
+
   return (
     <div className={`relative min-h-screen ${themeClass} overflow-x-hidden font-body select-none transition-colors duration-700`}>
       {/* Dynamic Background with Atmospheric Theme Blobs & Sparkles */}
@@ -272,6 +331,22 @@ export const App: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2.5">
+          {/* Back to Official Portal / Landing link */}
+          <button
+            onClick={() => {
+              const url = new URL(window.location.href);
+              url.search = '';
+              window.location.href = url.pathname;
+            }}
+            className={`px-3 py-2 rounded-2xl ${
+              isRevealActive ? 'bg-white/10 text-white/70 hover:text-white' : 'liquid-glass text-brown-muted hover:text-brown-text'
+            } text-xs font-cute font-bold hidden md:flex items-center gap-1.5 shadow-sm cursor-pointer`}
+            title="回到官網首頁"
+          >
+            <Globe size={14} />
+            <span>官網首頁</span>
+          </button>
+
           {appMode === 'projector' ? (
             <button
               onClick={() => setAppMode('guest')}
@@ -414,6 +489,9 @@ export const App: React.FC = () => {
         message={alertModal.message}
         type={alertModal.type}
       />
+
+      {/* Floating 24/7 Automated Support & FAQ Widget */}
+      <CustomerSupportWidget />
     </div>
   );
 };

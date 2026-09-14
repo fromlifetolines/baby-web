@@ -1,6 +1,6 @@
-export type ViewState = 'portal' | 'matrix' | 'dashboard' | 'reveal';
+export type ViewState = 'landing' | 'agency' | 'portal' | 'matrix' | 'dashboard' | 'reveal';
 
-export type AppMode = 'guest' | 'projector' | 'admin';
+export type AppMode = 'guest' | 'projector' | 'admin' | 'landing' | 'agency';
 
 export type ThemeStyle = 'gold-dark' | 'blush-pink' | 'baby-blue' | 'warm-cream';
 
