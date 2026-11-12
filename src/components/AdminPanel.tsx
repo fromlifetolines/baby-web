@@ -145,13 +145,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </button>
 
             {/* Header */}
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-6 pr-8">
               <div className="p-3.5 rounded-2xl bg-blush-100 border border-blush-200 text-pastel-coral">
                 <ShieldCheck size={26} />
               </div>
               <div>
-                <h2 className="font-heading text-2xl font-black text-brown-text">
-                  主持人抓周開獎中控台 🎀
+                <h2 className="font-heading text-lg sm:text-2xl font-black text-brown-text leading-tight">
+                  <span className="sm:hidden">主持人管理</span>
+                  <span className="hidden sm:inline">主持人抓周開獎中控台 🎀</span>
                 </h2>
                 <p className="text-xs text-brown-muted font-cute font-bold">
                   選定星唯實際抓取的 3 樣物品，一鍵引爆全場大螢幕與手機同步開獎！
