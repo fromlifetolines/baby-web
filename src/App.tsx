@@ -192,18 +192,25 @@ export const App: React.FC = () => {
   // Handler: Submit Selections
   const handleSubmitSelections = async (selections: string[]) => {
     try {
+      // Persist remotely before changing the success UI or local session state.
+      await submitGuessToDb(userName, selections, currentRoomId);
       setUserSelections(selections);
       localStorage.setItem(`guest_selections_${currentRoomId}`, JSON.stringify(selections));
-      await submitGuessToDb(userName, selections, currentRoomId);
       setView('dashboard');
       setAlertModal({
         isOpen: true,
-        title: '預測成功送出！ 🎀',
-        message: `太棒了！${userName}，您的 3 項抓周預測已成功寫入大典紀錄，請稍候舞台開獎！`,
+        title: '投票已送出',
+        message: '預測已成功儲存至雲端。',
         type: 'success',
       });
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error('Vote was not saved:', error);
+      setAlertModal({
+        isOpen: true,
+        title: '投票尚未送出',
+        message: '目前無法儲存到雲端，資料未送出。請稍後再試。',
+        type: 'error',
+      });
     }
   };
 
