@@ -345,20 +345,16 @@ export const resetAllGuessesInDb = async (roomId: string = 'xingwei'): Promise<v
     if (snap.size > 400) {
       throw new Error('投票超過 400 筆，已停止清空以避免部分刪除。請改用經驗證的後端批次流程。');
     }
-    if (!snap.empty) {
-      const batch = writeBatch(db);
-      snap.forEach((document) => {
-        batch.delete(document.ref);
-      });
-      await batch.commit();
-    }
-
-    await setDoc(doc(db, 'rooms', roomId, 'gameState', 'current'), {
+    // Single atomic batch: deletion and reset state succeed or fail together.
+    const batch = writeBatch(db);
+    snap.forEach((document) => batch.delete(document.ref));
+    batch.set(doc(db, 'rooms', roomId, 'gameState', 'current'), {
       isRevealed: false,
       actualItems: ['item_09', 'item_16', 'item_01'],
       lastResetTimestamp: resetTime,
       roomId,
-    });
+    }, { merge: true });
+    await batch.commit();
   } catch (e) {
     console.error("Firestore batch delete error:", e);
     throw e;
