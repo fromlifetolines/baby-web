@@ -350,6 +350,7 @@ export const resetAllGuessesInDb = async (roomId: string = 'xingwei'): Promise<v
     });
   } catch (e) {
     console.error("Firestore batch delete error:", e);
+    throw e;
   }
 
   // Purge all guest session and local keys for this room
