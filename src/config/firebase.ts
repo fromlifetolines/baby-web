@@ -340,6 +340,11 @@ export const resetAllGuessesInDb = async (roomId: string = 'xingwei'): Promise<v
   const resetTime = Date.now();
   try {
     const snap = await getDocs(collection(db, 'rooms', roomId, 'guesses'));
+    // Do not start a partial destructive reset if the batch would exceed limits.
+    // A dedicated trusted-backend bulk delete is needed for larger rooms.
+    if (snap.size > 400) {
+      throw new Error('投票超過 400 筆，已停止清空以避免部分刪除。請改用經驗證的後端批次流程。');
+    }
     if (!snap.empty) {
       const batch = writeBatch(db);
       snap.forEach((document) => {
