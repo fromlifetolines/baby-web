@@ -22,7 +22,17 @@ try {
     await page.screenshot({ path: `security/screenshots/admin-login-${size.name}.png`, fullPage: true });
     await page.close();
   }
-  process.stdout.write('UI smoke: mobile and desktop owner login forms rendered correctly.\n');
+  // Checkout must not pretend to process payments or provision rooms.
+  const landing = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await landing.goto('http://127.0.0.1:4173/baby-web/', { waitUntil: 'domcontentloaded' });
+  await landing.getByRole('button', { name: /立即開通此方案/ }).click();
+  const unavailable = landing.getByRole('dialog', { name: '方案開通狀態' });
+  await unavailable.waitFor({ state: 'visible' });
+  assert.match(await unavailable.innerText(), /線上開通尚未開放/);
+  assert.equal(await unavailable.locator('input').count(), 0, 'Fake checkout collected user data');
+  await landing.close();
+
+  process.stdout.write('UI smoke: mobile/desktop owner login and safe checkout notice passed.\n');
 } finally {
   await browser.close();
 }
