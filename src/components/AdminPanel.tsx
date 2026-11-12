@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { auth } from '../config/firebase';
+import { RoomOwnerState } from '../hooks/useRoomOwner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ZHUAZHOU_ITEMS } from '../config/itemsData';
 import { GameState, PartyConfig } from '../types';
@@ -18,11 +21,11 @@ interface AdminPanelProps {
   isOpen: boolean;
   onClose: () => void;
   gameState: GameState;
-  onTriggerReveal: (actualItems: string[]) => void;
-  onResetGame: () => void;
+  onTriggerReveal: (actualItems: string[]) => Promise<void>;
+  onResetGame: () => Promise<void>;
   onResetAllData: () => Promise<void>;
   onOpenCustomizer?: () => void;
-  initialUnlocked?: boolean;
+  owner: RoomOwnerState;
   partyConfig?: PartyConfig;
 }
 
@@ -34,7 +37,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onResetGame,
   onResetAllData,
   onOpenCustomizer,
-  initialUnlocked = false,
+  owner,
   partyConfig,
 }) => {
   const babyName = partyConfig?.babyName || '星唯';
@@ -45,8 +48,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [selectedActualIds, setSelectedActualIds] = useState<string[]>(
     gameState.actualItems?.length === 3 ? gameState.actualItems : ['item_09', 'item_16', 'item_01']
   );
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isUnlocked, setIsUnlocked] = useState(initialUnlocked);
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isResetting, setIsResetting] = useState(false);
 
@@ -62,23 +66,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }
   };
 
-  const handleUnlock = (e: React.FormEvent) => {
+  const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === '0819') {
-      setIsUnlocked(true);
-      setErrorMsg('');
-    } else {
-      setErrorMsg('密碼錯誤！請輸入正確的主持人管理密碼');
+    setErrorMsg('');
+    setIsSigningIn(true);
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+    } catch (error) {
+      console.error('Firebase sign-in failed:', error);
+      setErrorMsg('登入失敗，請檢查帳號與密碼。');
+    } finally {
+      setPassword('');
+      setIsSigningIn(false);
     }
   };
 
-  const handleTrigger = () => {
-    if (selectedActualIds.length !== 3) {
-      setErrorMsg('請勾選星唯實際抓取的 3 個志業品項！');
+  const handleTrigger = async () => {
+    if (!owner.isOwner) {
+      setErrorMsg('未取得此房間的主持人權限。');
       return;
     }
-    onTriggerReveal(selectedActualIds);
-    onClose();
+    if (selectedActualIds.length !== 3) {
+      setErrorMsg('請選擇實際抓取的三個物品。');
+      return;
+    }
+    try {
+      await onTriggerReveal(selectedActualIds);
+      onClose();
+    } catch (error) {
+      console.error('Reveal update failed:', error);
+      setErrorMsg('無法同步開獎到雲端。請稍後再試。');
+    }
   };
 
   // Native window.confirm to guarantee rendering above EVERYTHING without z-index conflicts
@@ -141,7 +159,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
             </div>
 
-            {!isUnlocked ? (
+            {!owner.isOwner ? (
               <form onSubmit={handleUnlock} className="space-y-4 py-6">
                 <div className="p-5 rounded-3xl bg-blush-50 border border-blush-200 text-center">
                   <Lock className="mx-auto text-pastel-coral mb-2" size={32} />
