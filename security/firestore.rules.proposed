@@ -1,0 +1,68 @@
+// PROPOSED ONLY — not deployed; DO NOT copy to production without reviewing
+// existing Firestore rules, testing in the Rules Playground / Emulator,
+// and enabling real Firebase Authentication + admin custom claims.
+//
+// Existing website has no Firebase Auth; after activating this rule,
+// the host's settings/reveal/reset operations WILL be denied until
+// authenticated with a trusted custom claim: admin == true.
+//
+// Guest reads of guesses are intentionally allowed for the EXISTING
+// public dashboard behavior; participant names are therefore public
+// to anyone who knows the room URL. Re-evaluate the privacy model.
+//
+// Anyone may create a well-shaped guess to preserve the current guest flow.
+// This is NOT anti-spam; add App Check, rate limiting, and/or a backend before
+// describing this as complete production hardening.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function validRoomId(roomId) {
+      return roomId.matches('^[a-z0-9_-]{1,64}$');
+    }
+
+    function isTrustedAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    match /rooms/{roomId}/settings/config {
+      allow get: if validRoomId(roomId);
+      allow list: if false;
+      allow create, update, delete: if validRoomId(roomId) && isTrustedAdmin();
+    }
+
+    match /rooms/{roomId}/gameState/current {
+      allow get: if validRoomId(roomId);
+      allow list: if false;
+      allow create, update, delete: if validRoomId(roomId) && isTrustedAdmin();
+    }
+
+    match /rooms/{roomId}/guesses/{guessId} {
+      // Current guest dashboard queries and displays all names in a room.
+      allow get, list: if validRoomId(roomId);
+
+      allow create: if validRoomId(roomId)
+        && request.resource.data.keys().hasOnly([
+          'name', 'selections', 'timestamp', 'createdAt', 'roomId'
+        ])
+        && request.resource.data.keys().hasAll([
+          'name', 'selections', 'timestamp', 'createdAt', 'roomId'
+        ])
+        && request.resource.data.roomId == roomId
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 60
+        && request.resource.data.selections is list
+        && request.resource.data.selections.size() == 3
+        && request.resource.data.selections[0] is string
+        && request.resource.data.selections[1] is string
+        && request.resource.data.selections[2] is string
+        && request.resource.data.timestamp == request.time
+        && request.resource.data.createdAt is int;
+
+      // Deliberately prevent guests from editing or deleting votes.
+      allow update, delete: if validRoomId(roomId) && isTrustedAdmin();
+    }
+    // Any path not matched above is denied by default.
+  }
+}
