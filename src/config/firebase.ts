@@ -315,11 +315,10 @@ export const updateGameStateInDb = async (
     revealedAt: state.isRevealed ? Date.now() : undefined,
   };
 
-  try {
-    await setDoc(doc(db, 'rooms', roomId, 'gameState', 'current'), merged, { merge: true });
-  } catch (e) {
-    console.error("Firestore gameState update error:", e);
-  }
+  // Firestore does not accept an undefined field value.
+  const { revealedAt, ...rest } = merged;
+  const payload = revealedAt === undefined ? rest : { ...rest, revealedAt };
+  await setDoc(doc(db, 'rooms', roomId, 'gameState', 'current'), payload, { merge: true });
 
   localStorage.setItem(getGameStateKey(roomId), JSON.stringify(merged));
   const broadcast = getBroadcast(roomId);
