@@ -214,33 +214,36 @@ export const App: React.FC = () => {
     }
   };
 
-  // Handler: Admin Trigger Reveal
-  const handleTriggerReveal = async (actualItems: string[]) => {
-    await updateGameStateInDb(currentRoomId, {
-      isRevealed: true,
-      actualItems,
-    });
+  // Defense in depth: UI checks complement (never replace) Firestore rules.
+  const requireRoomOwner = () => {
+    if (!owner.isOwner) {
+      setIsAdminOpen(true);
+      throw new Error('未經授權，請先登入此房間的主持人帳號。');
+    }
   };
 
-  // Handler: Admin Reset Game State Only
-  const handleResetGame = async () => {
-    await updateGameStateInDb(currentRoomId, {
-      isRevealed: false,
-    });
+  const handleTriggerReveal = async (actualItems: string[]): Promise<void> => {
+    requireRoomOwner();
+    await updateGameStateInDb(currentRoomId, { isRevealed: true, actualItems });
+  };
+
+  const handleResetGame = async (): Promise<void> => {
+    requireRoomOwner();
+    await updateGameStateInDb(currentRoomId, { isRevealed: false });
     if (appMode === 'guest') {
       setView(userName ? (userSelections.length === 3 ? 'dashboard' : 'matrix') : 'portal');
     }
   };
 
-  // Handler: Admin Reset All Data (Clean Slate & Global Purge)
-  const handleResetAllData = async () => {
+  const handleResetAllData = async (): Promise<void> => {
+    requireRoomOwner();
     await resetAllGuessesInDb(currentRoomId);
     setGuesses([]);
     purgeClientSession();
   };
 
-  // Handler: Save Party Customizer
-  const handleSaveConfig = async (newConfig: Partial<PartyConfig>) => {
+  const handleSaveConfig = async (newConfig: Partial<PartyConfig>): Promise<void> => {
+    requireRoomOwner();
     await updatePartyConfigInDb(currentRoomId, newConfig);
     setPartyConfig((prev) => ({ ...prev, ...newConfig }));
   };
