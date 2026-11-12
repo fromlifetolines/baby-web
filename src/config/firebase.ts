@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 import { 
   getFirestore, 
   collection, 
@@ -28,6 +28,19 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const db = getFirestore(app);
 export const auth = getAuth(app);
+
+// Keep an existing owner session. Coalesce concurrent guest submissions so
+// they cannot create multiple anonymous identities in this browser.
+let guestSignIn: Promise<string> | undefined;
+const getVoterUid = async (): Promise<string> => {
+  await auth.authStateReady();
+  if (auth.currentUser) return auth.currentUser.uid;
+  if (!guestSignIn) {
+    guestSignIn = signInAnonymously(auth).then(({ user }) => user.uid)
+      .finally(() => { guestSignIn = undefined; });
+  }
+  return guestSignIn;
+};
 
 // Default Party Config Template
 export const DEFAULT_PARTY_CONFIG: PartyConfig = {
@@ -185,20 +198,28 @@ export const updatePartyConfigInDb = async (
 export const submitGuessToDb = async (
   name: string,
   selections: string[],
-  roomId: string = 'xingwei'
+  roomId: string = 'xingwei',
+  invitationCode: string = ''
 ): Promise<void> => {
+  const inviteId = invitationCode.trim().toLowerCase();
+  if (!/^[a-f0-9]{32}$/.test(inviteId)) throw new Error('請輸入主持人提供的一次性邀請碼。');
   const cleanName = name.trim();
   if (!cleanName || cleanName.length > 60 || selections.length !== 3 ||
       new Set(selections).size !== 3 || selections.some((item) => typeof item !== 'string')) {
     throw new Error('請輸入姓名並選擇三個不同的物品。');
   }
-  await addDoc(collection(db, 'rooms', roomId, 'guesses'), {
+  const uid = await getVoterUid();
+  const batch = writeBatch(db);
+  batch.update(doc(db, 'rooms', roomId, 'voteInvites', inviteId), { usedBy: uid, usedAt: serverTimestamp() });
+  batch.set(doc(db, 'rooms', roomId, 'guesses', uid), {
+    inviteId,
     name: cleanName,
     selections,
     timestamp: serverTimestamp(),
     createdAt: Date.now(),
     roomId,
   });
+  await batch.commit();
 };
 
 // -------------------------------------------------------------
@@ -389,4 +410,16 @@ export const resetAllGuessesInDb = async (roomId: string = 'xingwei'): Promise<v
       } 
     });
   }
+};
+
+// 128-bit unguessable bearer invitations. Never log or store unused codes in
+// public config. Rules restrict creation to the room owner and prevent reuse.
+export const createVoteInvites = async (roomId: string, count: number = 10): Promise<string[]> => {
+  if (!Number.isInteger(count) || count < 1 || count > 100) throw new Error('邀請碼數量須為 1–100。');
+  const codes = Array.from({ length: count }, () =>
+    Array.from(crypto.getRandomValues(new Uint8Array(16)), n => n.toString(16).padStart(2, '0')).join(''));
+  const batch = writeBatch(db);
+  codes.forEach(code => batch.set(doc(db, 'rooms', roomId, 'voteInvites', code), { usedBy: '', usedAt: null }));
+  await batch.commit();
+  return codes;
 };

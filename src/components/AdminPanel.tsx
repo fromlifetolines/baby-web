@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { auth, createVoteInvites } from '../config/firebase';
 import { RoomOwnerState } from '../hooks/useRoomOwner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ZHUAZHOU_ITEMS } from '../config/itemsData';
@@ -53,6 +53,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isResetting, setIsResetting] = useState(false);
+  const [inviteCodes, setInviteCodes] = useState<string[]>([]);
+  const [isCreatingInvites, setIsCreatingInvites] = useState(false);
+  React.useEffect(() => { setInviteCodes([]); }, [partyConfig?.roomId, owner.isOwner]);
+  const handleCreateInvites = async () => {
+    if (!owner.isOwner || !partyConfig?.roomId) return;
+    setIsCreatingInvites(true);
+    setErrorMsg('');
+    try {
+      setInviteCodes(await createVoteInvites(partyConfig.roomId));
+    } catch {
+      setErrorMsg('邀請碼建立失敗，請確認主持人權限與網路。');
+    } finally {
+      setIsCreatingInvites(false);
+    }
+  };
 
   const handleToggleItem = (id: string) => {
     if (selectedActualIds.includes(id)) {
@@ -216,6 +231,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <button type="button" onClick={() => void signOut(auth)}
                     className="text-xs text-brown-muted underline">登出管理員</button>
                 </div>
+                <section className="p-4 border rounded-2xl space-y-3">
+                  <h4 className="font-bold">賓客一次性邀請碼</h4>
+                  <p className="text-xs">每位賓客發一組。成功投票後失效，清空票據也不會恢復。</p>
+                  <button type="button" disabled={isCreatingInvites} onClick={() => void handleCreateInvites()}
+                    className="pastel-btn-primary px-4 py-2 rounded-xl disabled:opacity-50">
+                    {isCreatingInvites ? '建立中…' : '建立 10 組邀請碼'}
+                  </button>
+                  {inviteCodes.length > 0 && <>
+                    <p className="text-xs">請複製保存下列邀請碼，分別私下交給賓客；再次建立會替換這份顯示清單。</p>
+                    <textarea aria-label="已建立的邀請碼" readOnly value={inviteCodes.join('\n')}
+                      rows={10} className="w-full text-xs font-mono border rounded-lg p-2" />
+                  </>}
+                  {errorMsg && <p role="alert" className="text-rose-500 text-xs">{errorMsg}</p>}
+                </section>
                 {/* SaaS Studio Action */}
                 {onOpenCustomizer && (
                   <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 via-rose-50 to-amber-50 border-2 border-amber-300 flex items-center justify-between shadow-sm">
