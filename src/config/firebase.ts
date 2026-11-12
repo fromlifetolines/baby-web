@@ -167,11 +167,8 @@ export const updatePartyConfigInDb = async (
     updatedAt: Date.now(),
   };
 
-  try {
-    await setDoc(doc(db, 'rooms', roomId, 'settings', 'config'), merged, { merge: true });
-  } catch (e) {
-    console.error("Firestore config update error:", e);
-  }
+  // Fail closed: browser-only local changes must never masquerade as cloud writes.
+  await setDoc(doc(db, 'rooms', roomId, 'settings', 'config'), merged, { merge: true });
 
   localStorage.setItem(getConfigKey(roomId), JSON.stringify(merged));
   const broadcast = getBroadcast(roomId);
