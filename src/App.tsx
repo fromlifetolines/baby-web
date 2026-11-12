@@ -12,6 +12,7 @@ import { LiquidModal } from './components/LiquidModal';
 import { LandingPageView } from './components/LandingPageView';
 import { AgencyDashboardView } from './components/AgencyDashboardView';
 import { CustomerSupportWidget } from './components/CustomerSupportWidget';
+import { useRoomOwner } from './hooks/useRoomOwner';
 import { 
   subscribeToGuesses, 
   subscribeToGameState, 
@@ -48,7 +49,7 @@ export const App: React.FC = () => {
 
   // Modals & Panels
   const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [adminPreUnlocked, setAdminPreUnlocked] = useState(false);
+  const owner = useRoomOwner(currentRoomId);
   const [isStickerModalOpen, setIsStickerModalOpen] = useState(false);
   const [alertModal, setAlertModal] = useState<{
     isOpen: boolean;
@@ -104,12 +105,8 @@ export const App: React.FC = () => {
       setAppMode('guest');
     }
 
-    if (adminParam === '0819') {
-      setAdminPreUnlocked(true);
-      setIsAdminOpen(true);
-    } else if (adminParam !== null) {
-      setIsAdminOpen(true);
-    }
+    // Query params may open the login dialog, but can never bypass Firebase Auth.
+    if (adminParam !== null) setIsAdminOpen(true);
   }, []);
 
   // Helper to force purge local guest session
@@ -377,7 +374,7 @@ export const App: React.FC = () => {
 
           {/* Quick Customizer Studio Button */}
           <button
-            onClick={() => setIsCustomizerOpen(true)}
+            onClick={() => owner.isOwner ? setIsCustomizerOpen(true) : setIsAdminOpen(true)}
             className={`px-3.5 py-2 rounded-2xl ${
               isRevealActive ? 'bg-amber-400 text-amber-950 font-black' : 'bg-amber-100/90 text-amber-950 font-bold border border-amber-300'
             } text-xs font-heading flex items-center gap-1.5 shadow-sm hover:scale-105 transition-all cursor-pointer`}
@@ -471,13 +468,13 @@ export const App: React.FC = () => {
         onTriggerReveal={handleTriggerReveal}
         onResetGame={handleResetGame}
         onResetAllData={handleResetAllData}
-        onOpenCustomizer={() => setIsCustomizerOpen(true)}
-        initialUnlocked={adminPreUnlocked}
+        onOpenCustomizer={() => { if (owner.isOwner) setIsCustomizerOpen(true); }}
+        owner={owner}
         partyConfig={partyConfig}
       />
 
       <PartyCustomizerModal
-        isOpen={isCustomizerOpen}
+        isOpen={isCustomizerOpen && owner.isOwner}
         onClose={() => setIsCustomizerOpen(false)}
         config={partyConfig}
         onSaveConfig={handleSaveConfig}
