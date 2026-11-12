@@ -29,7 +29,7 @@
    ```
 
    **重大影響**：這會拒絕所有瀏覽器端 Firestore 存取，投票、開獎、設定同步與展示資料可能停止或退回本機快取。請先匯出資料且理解影響再採取；這不是正常營運的最終規則。
-4. 對照本分支 `security/firestore.rules.proposed`，逐條確認房間讀寫需求與已上線規則。**不可將示範規則當成已驗收的正式設定**：示範規則保留公開參加者姓名及訪客提交投票功能，而且管理員寫入會被拒絕，直到導入 Firebase Authentication + 可信任的 `admin` custom claim。亦須防範濫用投票（App Check、速率限制或後端）。
+4. 對照本分支 `security/firestore.rules.proposed`，逐條確認房間讀寫需求與已上線規則。**不可將示範規則當成已驗收的正式設定**：示範規則保留公開參加者姓名及訪客提交投票功能，而且管理員寫入會被拒絕，直到導入 Firebase Authentication 並依照 `rooms/{roomId}/admins/{uid}` 驗證 owner。亦須防範濫用投票（App Check、速率限制或後端）。
 5. **Google Cloud Console**：https://console.cloud.google.com/apis/credentials?project=baby-web-1a142 。確認相同金鑰僅允許 Firebase 所需 API，**沒有**包含 Generative Language API、Places 或其他不必要的計費 API；依實際 Firebase SDK 用途測試後調整。請勿未測試就撤銷或刪除金鑰。
 6. 檢查 Cloud Monitoring／相關 API 使用量、Cloud Audit Logs（如已啟用）、Firestore 操作量與帳單是否有異常。沒開啟的稽核功能無法追溯過去事件。
 7. 若確認金鑰已被拿去使用其他受限／計費 API、出現濫用或限制無法排除風險：在 Google Cloud 建立**權限受限的新金鑰**，同步更新網站與所有部署版本、驗證後才撤銷舊金鑰。只改 GitHub 原始檔無法撤回已公開的舊金鑰。
@@ -37,7 +37,7 @@
 
 ## P1：需另案實作的必要修補
 - 移除所有前端硬編碼管理員口令、可直接開啟管理員的 URL 參數捷徑、以 localStorage 決定管理員權限的做法。
-- 主持人與代理商後台需由 Firebase Authentication 驗證，**FireStore Security Rules** 授權檢查必須在伺服器端執行；不可只靠前端按鈕、顯示狀態或 PIN。
+- 主持人與代理商後台需由 Firebase Authentication 驗證，**Firestore Security Rules** 按 `rooms/{roomId}/admins/{uid}` 檢查房間權限；不可只靠前端按鈕、顯示狀態或 PIN。
 - 批次刪除與設定變更必須只開放給可信任主持人。為多租戶擴充時須設計每個房間的角色與授權，不可讓任何 `admin` 控制全部房間。
 - 儲存失敗時不得假裝成功：目前 `firebase.ts` 多處 catch 後只寫 console 或 fallback 到 localStorage，使用者可能以為雲端更新成功。
 - 實施 Firestore 規則單元測試、Firestore Emulator 驗證（訪客讀取、投票、未授權修改或刪除、主持人登入／登出），再以獨立 PR 整合程式。
@@ -54,4 +54,8 @@
 官方參考：
 - https://firebase.google.com/docs/projects/api-keys
 - https://firebase.google.com/docs/firestore/security/insecure-rules
-- https://firebase.google.com/docs/auth/admin/custom-claims
+- https://firebase.google.com/docs/firestore/security/rules-conditions
+
+
+## 2026-11-12 補充：已建立 owner UID 授權文件
+使用者已在 Firebase Authentication 建立帳號，並於 `rooms/xingwei/admins/{UID}` 建立 `active: true`、`role: "owner"`。文件 ID 因截圖遮蔽未能獨立比對。工單詳見 [SECURITY_IMPLEMENTATION_HANDOFF.md](SECURITY_IMPLEMENTATION_HANDOFF.md)。截至此補充，正式 Firestore 規則仍為全面拒絕，前端安全登入尚未實作，不能宣稱復原成功。
