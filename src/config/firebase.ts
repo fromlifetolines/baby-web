@@ -27,6 +27,7 @@ const firebaseConfig = {
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const db = getFirestore(app);
+export const auth = getAuth(app);
 
 // Default Party Config Template
 export const DEFAULT_PARTY_CONFIG: PartyConfig = {
