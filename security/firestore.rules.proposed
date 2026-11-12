@@ -6,14 +6,12 @@
 // Admin documents MUST be created/managed only through a trusted console/backend.
 // No client is permitted to grant itself admin privileges.
 //
-// Privacy warning: list permission for guesses intentionally preserves the
-// existing public leaderboard behavior (participant names become readable
-// to anyone who knows the room link). Review informed consent before deploy.
-// Guest guesses are still vulnerable to automated spam without App Check,
-// rate limiting, and/or a trusted backend.
-//
-// Test with Firebase Emulator and current UI before deploying.
-// Owner actions must be authenticated with Firebase Auth, never a UI-only PIN.
+// Candidate: one immutable vote per authenticated UID per room. Requires
+// Anonymous Authentication enabled before deploying the matching frontend.
+// Each vote also requires one owner-issued 128-bit invitation, atomically consumed.
+// New identities alone cannot vote. Bearer codes must be distributed privately.
+// Public names remain part of the existing leaderboard; privacy review pending.
+// Never deploy this candidate until emulator and production acceptance pass.
 
 rules_version = '2';
 service cloud.firestore {
@@ -29,10 +27,76 @@ service cloud.firestore {
 
     function isRoomOwner(roomId) {
       return request.auth != null
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
         && validRoomId(roomId)
         && exists(ownerPath(roomId))
         && get(ownerPath(roomId)).data.active == true
         && get(ownerPath(roomId)).data.role == 'owner';
+    }
+
+    function isValidVote(roomId, data) {
+      return data.keys().hasOnly([
+          'name', 'selections', 'timestamp', 'createdAt', 'roomId', 'inviteId'
+        ])
+        && data.keys().hasAll([
+          'name', 'selections', 'timestamp', 'createdAt', 'roomId', 'inviteId'
+        ])
+        && data.inviteId is string
+        && data.inviteId.matches('^[a-f0-9]{32}$')
+        && data.roomId == roomId
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 60
+        && data.selections is list
+        && data.selections.size() == 3
+        && data.selections[0] is string
+        && data.selections[1] is string
+        && data.selections[2] is string
+        && data.selections[0] != data.selections[1]
+        && data.selections[0] != data.selections[2]
+        && data.selections[1] != data.selections[2]
+        && data.timestamp == request.time
+        && data.createdAt is int
+        && data.createdAt >= 0
+        && data.createdAt <= 8640000000000000
+        && data.selections[0].size() <= 128
+        && data.selections[1].size() <= 128
+        && data.selections[2].size() <= 128;
+    }
+
+    function invitePath(roomId, code) {
+      return /databases/$(database)/documents/rooms/$(roomId)/voteInvites/$(code);
+    }
+
+    function votePath(roomId) {
+      return /databases/$(database)/documents/rooms/$(roomId)/guesses/$(request.auth.uid);
+    }
+
+    function isValidInvite(data) {
+      return data.keys().hasAll(['usedBy', 'usedAt'])
+        && data.keys().hasOnly(['usedBy', 'usedAt'])
+        && data.usedBy is string && data.usedBy.size() <= 128
+        && ((data.usedBy == '' && data.usedAt == null)
+          || (data.usedBy.size() > 0 && data.usedAt is timestamp));
+    }
+
+    match /rooms/{roomId}/voteInvites/{code} {
+      allow read: if isRoomOwner(roomId);
+      allow create: if isRoomOwner(roomId)
+        && code.matches('^[a-f0-9]{32}$')
+        && isValidInvite(request.resource.data)
+        && request.resource.data.usedBy == '' && request.resource.data.usedAt == null;
+      // Redeem together with exactly one new vote. Used codes cannot be reset,
+      // reassigned, deleted, or replayed, even after the vote is deleted.
+      allow update: if request.auth != null && validRoomId(roomId)
+        && code.matches('^[a-f0-9]{32}$')
+        && resource.data.usedBy == '' && resource.data.usedAt == null
+        && isValidInvite(request.resource.data)
+        && request.resource.data.usedBy == request.auth.uid
+        && request.resource.data.usedAt == request.time
+        && !exists(votePath(roomId))
+        && getAfter(votePath(roomId)).data.inviteId == code;
+      allow delete: if false;
     }
 
     match /rooms/{roomId}/admins/{uid} {
@@ -59,29 +123,21 @@ service cloud.firestore {
       // COMPATIBILITY / PRIVACY DECISION REQUIRED: public names/guesses.
       allow get, list: if validRoomId(roomId);
 
-      allow create: if validRoomId(roomId)
-        && request.resource.data.keys().hasOnly([
-          'name', 'selections', 'timestamp', 'createdAt', 'roomId'
-        ])
-        && request.resource.data.keys().hasAll([
-          'name', 'selections', 'timestamp', 'createdAt', 'roomId'
-        ])
-        && request.resource.data.roomId == roomId
-        && request.resource.data.name is string
-        && request.resource.data.name.size() > 0
-        && request.resource.data.name.size() <= 60
-        && request.resource.data.selections is list
-        && request.resource.data.selections.size() == 3
-        && request.resource.data.selections[0] is string
-        && request.resource.data.selections[1] is string
-        && request.resource.data.selections[2] is string
-        && request.resource.data.selections[0] != request.resource.data.selections[1]
-        && request.resource.data.selections[0] != request.resource.data.selections[2]
-        && request.resource.data.selections[1] != request.resource.data.selections[2]
-        && request.resource.data.timestamp == request.time
-        && request.resource.data.createdAt is int;
-
-      allow update, delete: if isRoomOwner(roomId);
+      allow create: if request.auth != null
+        && request.auth.uid == guessId
+        && validRoomId(roomId)
+        && exists(/databases/$(database)/documents/rooms/$(roomId)/settings/config)
+        && exists(/databases/$(database)/documents/rooms/$(roomId)/gameState/current)
+        && get(/databases/$(database)/documents/rooms/$(roomId)/gameState/current).data.isRevealed == false
+        && request.resource.data.selections.toSet().hasOnly(
+          get(/databases/$(database)/documents/rooms/$(roomId)/settings/config).data.activeItemIds)
+        && isValidVote(roomId, request.resource.data)
+        && get(invitePath(roomId, request.resource.data.inviteId)).data.usedBy == ''
+        && get(invitePath(roomId, request.resource.data.inviteId)).data.usedAt == null
+        && getAfter(invitePath(roomId, request.resource.data.inviteId)).data.usedBy == request.auth.uid
+        && getAfter(invitePath(roomId, request.resource.data.inviteId)).data.usedAt == request.time;
+      allow update: if false;
+      allow delete: if isRoomOwner(roomId);
     }
 
     // No wildcard rules allowing anything else. All unmatched paths denied.

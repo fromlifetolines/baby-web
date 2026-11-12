@@ -24,7 +24,7 @@ export const useRoomOwner = (roomId: string): RoomOwnerState => {
       unsubscribeRole?.();
       unsubscribeRole = undefined;
 
-      if (!user) {
+      if (!user || user.isAnonymous) {
         setOwner({ user: null, status: 'signed-out', isOwner: false });
         return;
       }

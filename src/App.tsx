@@ -38,6 +38,7 @@ export const App: React.FC = () => {
   // Navigation & User State
   const [view, setView] = useState<ViewState>('portal');
   const [userName, setUserName] = useState<string>('');
+  const [invitationCode, setInvitationCode] = useState('');
   const [userSelections, setUserSelections] = useState<string[]>([]);
 
   // Real-time Data
@@ -195,7 +196,7 @@ export const App: React.FC = () => {
   const handleSubmitSelections = async (selections: string[]) => {
     try {
       // Persist remotely before changing the success UI or local session state.
-      await submitGuessToDb(userName, selections, currentRoomId);
+      await submitGuessToDb(userName, selections, currentRoomId, invitationCode);
       setUserSelections(selections);
       localStorage.setItem(`guest_selections_${currentRoomId}`, JSON.stringify(selections));
       setView('dashboard');
@@ -210,7 +211,7 @@ export const App: React.FC = () => {
       setAlertModal({
         isOpen: true,
         title: '投票尚未送出',
-        message: '目前無法儲存到雲端，資料未送出。請稍後再試。',
+        message: '未儲存成功。請確認邀請碼未使用、尚未揭曉且已連線；若已投票，請勿重複提交。',
         type: 'error',
       });
     }
@@ -454,6 +455,18 @@ export const App: React.FC = () => {
             )}
 
             {view === 'matrix' && (
+              <>
+              <div className="max-w-xl mx-4 sm:mx-auto mt-6 p-4 bg-white/95 rounded-2xl shadow-sm">
+                <label className="block text-sm text-brown-text">
+                  一次性邀請碼
+                  <input aria-label="一次性邀請碼" autoComplete="off" spellCheck={false}
+                    maxLength={32} value={invitationCode}
+                    onChange={event => setInvitationCode(event.target.value.trim().toLowerCase())}
+                    placeholder="請輸入主持人提供的 32 碼邀請碼"
+                    className="block w-full border rounded-xl p-3 mt-2" />
+                </label>
+                <p className="text-xs text-brown-muted mt-2">每組只能成功投票一次，請勿轉傳。</p>
+              </div>
               <MatrixView
                 userName={userName}
                 onSubmitSelections={handleSubmitSelections}
@@ -461,6 +474,7 @@ export const App: React.FC = () => {
                 onOpenStickerModal={() => setIsStickerModalOpen(true)}
                 partyConfig={partyConfig}
               />
+              </>
             )}
 
             {view === 'dashboard' && (
