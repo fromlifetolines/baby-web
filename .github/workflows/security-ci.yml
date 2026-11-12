@@ -41,3 +41,18 @@ jobs:
             echo "Forbidden legacy authorization found" >&2
             exit 1
           fi
+
+      - name: Install Chromium smoke test tooling
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Smoke-test secure admin UI (mobile and desktop)
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 &
+          node security/ui-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: baby-web-admin-login-screenshots
+          path: security/screenshots/
+          if-no-files-found: ignore
