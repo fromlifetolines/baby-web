@@ -36,27 +36,6 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
     price: string;
     planType: 'single' | 'agency';
   } | null>(null);
-  const [buyerBabyName, setBuyerBabyName] = useState('');
-  const [buyerEmail, setBuyerEmail] = useState('');
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [paymentSuccessData, setPaymentSuccessData] = useState<{ roomId: string } | null>(null);
-
-  const handleCheckoutSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!buyerBabyName.trim() || !buyerEmail.trim()) {
-      alert('請填寫寶寶姓名/主辦名稱與 Email 通訊信箱！');
-      return;
-    }
-
-    setIsProcessingPayment(true);
-    // Simulate auto payment approval and room provisioning
-    setTimeout(() => {
-      const generatedRoom = `baby_${Math.random().toString(36).substring(2, 7)}`;
-      setIsProcessingPayment(false);
-      setPaymentSuccessData({ roomId: generatedRoom });
-    }, 1200);
-  };
-
   return (
     <div className="min-h-screen bg-[#07020A] text-white select-none overflow-x-hidden relative">
       {/* Dynamic Ambient Luxury Glows */}
@@ -338,130 +317,32 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         </div>
       </section>
 
-      {/* Checkout Simulator Modal */}
+      {/* Safe plan availability information; no fake payment or provisioning. */}
       <AnimatePresence>
         {checkoutPlan && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => {
-                if (!isProcessingPayment) {
-                  setCheckoutPlan(null);
-                  setPaymentSuccessData(null);
-                }
-              }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }} onClick={() => setCheckoutPlan(null)}
               className="fixed inset-0 bg-black/85 backdrop-blur-md"
             />
-
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.96, opacity: 0, y: 16 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-md rounded-[36px] bg-zinc-950 border-2 border-amber-400/80 shadow-2xl p-6 sm:p-8 z-10 space-y-5"
+              exit={{ scale: 0.96, opacity: 0, y: 16 }}
+              role="dialog" aria-modal="true" aria-label="方案開通狀態"
+              className="relative z-10 w-full max-w-md rounded-[28px] bg-zinc-950 border border-amber-400/50 shadow-2xl p-6 sm:p-8 space-y-5"
             >
-              {!paymentSuccessData ? (
-                <>
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                    <div>
-                      <h3 className="font-heading text-xl font-black text-amber-300">
-                        快速結帳開通通行證 💳
-                      </h3>
-                      <p className="text-xs text-white/50">{checkoutPlan.name} · {checkoutPlan.price}</p>
-                    </div>
-                    <button
-                      onClick={() => setCheckoutPlan(null)}
-                      className="p-1 rounded-full text-white/40 hover:text-white"
-                    >
-                      ✕
-                    </button>
-                  </div>
-
-                  <form onSubmit={handleCheckoutSubmit} className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-bold text-white/80 mb-1.5">
-                        👶 寶寶姓名 / 主辦單位名稱
-                      </label>
-                      <input
-                        type="text"
-                        value={buyerBabyName}
-                        onChange={(e) => setBuyerBabyName(e.target.value)}
-                        placeholder="例如：星唯、美好時光派對工作室"
-                        className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white font-bold text-sm focus:outline-none focus:border-amber-400"
-                        required
-                        autoFocus
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-white/80 mb-1.5">
-                        📧 接收通知與後台通行證的 Email
-                      </label>
-                      <input
-                        type="email"
-                        value={buyerEmail}
-                        onChange={(e) => setBuyerEmail(e.target.value)}
-                        placeholder="例如：service@example.com"
-                        className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white font-mono text-sm focus:outline-none focus:border-amber-400"
-                        required
-                      />
-                    </div>
-
-                    <div className="p-3.5 rounded-2xl bg-amber-400/10 border border-amber-400/30 text-xs text-amber-200/90 font-cute space-y-1">
-                      <div className="flex items-center gap-1.5 font-bold">
-                        <ShieldCheck size={16} className="text-amber-400" />
-                        <span>綠界 ECPay / 藍新 / Stripe 安全加密連線</span>
-                      </div>
-                      <p className="text-[11px] text-white/60">
-                        付款完成後系統於 3 秒內自動建立派對房間並寄送開房密鑰，零人工等待！
-                      </p>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={isProcessingPayment}
-                      className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-amber-950 font-heading font-black text-base shadow-lg transition-all cursor-pointer disabled:opacity-50"
-                    >
-                      {isProcessingPayment ? '處理付款開通中...' : `立即確認支付 ${checkoutPlan.price} 並開通`}
-                    </button>
-                  </form>
-                </>
-              ) : (
-                /* Payment Successful Screen */
-                <div className="text-center space-y-4 py-4">
-                  <div className="w-16 h-16 rounded-full bg-emerald-400 text-emerald-950 flex items-center justify-center mx-auto text-2xl font-black shadow-lg">
-                    ✓
-                  </div>
-                  <h3 className="font-heading text-2xl font-black text-amber-300">
-                    開通成功！專屬房間已建立 🎉
-                  </h3>
-                  <div className="p-4 rounded-2xl bg-white/10 border border-white/15 space-y-2 text-left">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-white/60">專屬房號 (Room ID):</span>
-                      <strong className="font-mono text-amber-300">{paymentSuccessData.roomId}</strong>
-                    </div>
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-white/60">主辦人預設密碼:</span>
-                      <strong className="font-mono text-emerald-300">0819</strong>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-white/70 font-cute">
-                    通知信已同步發送至 {buyerEmail}，現在即可直接進入派對房間開始客製！
-                  </p>
-
-                  <button
-                    onClick={() => {
-                      onEnterDemoRoom(paymentSuccessData.roomId);
-                      setCheckoutPlan(null);
-                    }}
-                    className="w-full py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-heading font-black text-sm shadow-lg transition-all cursor-pointer"
-                  >
-                    立即進入派對中控台 🚀
-                  </button>
-                </div>
-              )}
+              <h3 className="font-heading text-xl font-black text-amber-300">線上開通尚未開放</h3>
+              <p className="text-sm text-white/80">{checkoutPlan.name} · {checkoutPlan.price}</p>
+              <p className="text-sm text-white/75 leading-7">
+                本頁僅提供方案資訊。目前沒有啟用線上付款、活動房間自動建立或寄送開通通知，
+                不會向你收取費用。請勿提供信用卡或其他付款資料。
+              </p>
+              <button type="button" onClick={() => setCheckoutPlan(null)}
+                className="w-full rounded-xl bg-amber-400 px-5 py-3 text-amber-950 font-black">
+                我知道了
+              </button>
             </motion.div>
           </div>
         )}
