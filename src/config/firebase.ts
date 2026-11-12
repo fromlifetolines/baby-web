@@ -111,7 +111,8 @@ export const getStoredGameState = (roomId: string = 'xingwei'): GameState => {
 // -------------------------------------------------------------
 export const subscribeToPartyConfig = (
   roomId: string = 'xingwei',
-  callback: (config: PartyConfig) => void
+  callback: (config: PartyConfig) => void,
+  onError?: (error: Error) => void
 ) => {
   let isUnmounted = false;
   const broadcast = getBroadcast(roomId);
@@ -131,6 +132,7 @@ export const subscribeToPartyConfig = (
       }
     }, (err) => {
       console.warn("PartyConfig onSnapshot fallback to local:", err);
+      onError?.(err);
       callback(getStoredConfig(roomId));
     });
 
@@ -204,7 +206,8 @@ export const submitGuessToDb = async (
 // -------------------------------------------------------------
 export const subscribeToGuesses = (
   roomId: string = 'xingwei',
-  callback: (guesses: GuessRecord[]) => void
+  callback: (guesses: GuessRecord[]) => void,
+  onError?: (error: Error) => void
 ) => {
   let isUnmounted = false;
   const broadcast = getBroadcast(roomId);
@@ -228,6 +231,7 @@ export const subscribeToGuesses = (
       localStorage.setItem(getGuessesKey(roomId), JSON.stringify(list));
     }, (err) => {
       console.warn("Firestore guesses onSnapshot fallback:", err);
+      onError?.(err);
       callback(getStoredGuesses(roomId));
     });
 
@@ -257,7 +261,8 @@ export const subscribeToGuesses = (
 // -------------------------------------------------------------
 export const subscribeToGameState = (
   roomId: string = 'xingwei',
-  callback: (state: GameState) => void
+  callback: (state: GameState) => void,
+  onError?: (error: Error) => void
 ) => {
   let isUnmounted = false;
   const broadcast = getBroadcast(roomId);
@@ -276,6 +281,7 @@ export const subscribeToGameState = (
       }
     }, (err) => {
       console.warn("GameState onSnapshot fallback:", err);
+      onError?.(err);
       callback(getStoredGameState(roomId));
     });
 
