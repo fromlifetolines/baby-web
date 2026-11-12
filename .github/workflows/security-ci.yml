@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   validation:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -49,6 +49,7 @@ jobs:
       - name: Smoke-test secure admin UI (mobile and desktop)
         run: |
           npm run preview -- --host 127.0.0.1 --port 4173 &
+          curl --retry 30 --retry-connrefused --retry-delay 1 -fsS http://127.0.0.1:4173/baby-web/ > /dev/null
           node security/ui-smoke.mjs
       - uses: actions/upload-artifact@v4
         if: always()
