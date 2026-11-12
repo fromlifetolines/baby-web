@@ -305,7 +305,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <button
                       onClick={() => {
                         if (window.confirm('確定要重設全場開獎狀態回預測中嗎？')) {
-                          onResetGame();
+                          void onResetGame().catch(() => setErrorMsg('雲端重設失敗，請稍後再試。'));
                           onClose();
                         }
                       }}
