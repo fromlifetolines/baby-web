@@ -51,6 +51,7 @@ export const App: React.FC = () => {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const owner = useRoomOwner(currentRoomId);
   const [isStickerModalOpen, setIsStickerModalOpen] = useState(false);
+  const [cloudSyncError, setCloudSyncError] = useState(false);
   const [alertModal, setAlertModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -144,13 +145,14 @@ export const App: React.FC = () => {
 
   // Subscribe to real-time partyConfig, guesses & gameState with reactive reset handling
   useEffect(() => {
+    setCloudSyncError(false);
     const unsubConfig = subscribeToPartyConfig(currentRoomId, (updatedConfig) => {
       setPartyConfig(updatedConfig);
-    });
+    }, () => setCloudSyncError(true));
 
     const unsubGuesses = subscribeToGuesses(currentRoomId, (updatedGuesses) => {
       setGuesses(updatedGuesses);
-    });
+    }, () => setCloudSyncError(true));
 
     const unsubGameState = subscribeToGameState(currentRoomId, (updatedGameState) => {
       setGameState(updatedGameState);
@@ -173,7 +175,7 @@ export const App: React.FC = () => {
           setView(userName ? (userSelections.length === 3 ? 'dashboard' : 'matrix') : 'portal');
         }
       }
-    });
+    }, () => setCloudSyncError(true));
 
     return () => {
       if (unsubConfig) unsubConfig();
@@ -312,6 +314,12 @@ export const App: React.FC = () => {
     <div className={`relative min-h-screen ${themeClass} overflow-x-hidden font-body select-none transition-colors duration-700`}>
       {/* Dynamic Background with Atmospheric Theme Blobs & Sparkles */}
       {!isRevealActive && <BackgroundPastel theme={themeColor} />}
+
+      {cloudSyncError && (
+        <div role="alert" className="relative z-40 bg-rose-950 text-white text-sm px-4 py-3 text-center">
+          雲端資料目前無法同步。投票及管理操作可能暫時無法使用，請勿將本機畫面視為已儲存的紀錄。
+        </div>
+      )}
 
       {/* Top Navbar */}
       <header className={`relative z-30 px-4 sm:px-8 py-3.5 flex items-center justify-between border-b ${
