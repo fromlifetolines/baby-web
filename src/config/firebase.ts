@@ -181,36 +181,22 @@ export const updatePartyConfigInDb = async (
 // API: Submit Guess to Firestore (Room Isolated)
 // -------------------------------------------------------------
 export const submitGuessToDb = async (
-  name: string, 
+  name: string,
   selections: string[],
   roomId: string = 'xingwei'
 ): Promise<void> => {
-  try {
-    // Write into subcollection: rooms/{roomId}/guesses
-    await addDoc(collection(db, 'rooms', roomId, 'guesses'), {
-      name,
-      selections,
-      timestamp: serverTimestamp(),
-      createdAt: Date.now(),
-      roomId,
-    });
-  } catch (err) {
-    console.error("Firestore write error, falling back locally:", err);
-    const newGuess: GuessRecord = {
-      id: 'local_' + Date.now(),
-      name,
-      selections,
-      timestamp: Date.now(),
-      roomId,
-    };
-    const current = getStoredGuesses(roomId);
-    const updated = [newGuess, ...current];
-    localStorage.setItem(getGuessesKey(roomId), JSON.stringify(updated));
-    const broadcast = getBroadcast(roomId);
-    if (broadcast) {
-      broadcast.postMessage({ type: 'NEW_GUESS', payload: newGuess });
-    }
+  const cleanName = name.trim();
+  if (!cleanName || cleanName.length > 60 || selections.length !== 3 ||
+      new Set(selections).size !== 3 || selections.some((item) => typeof item !== 'string')) {
+    throw new Error('請輸入姓名並選擇三個不同的物品。');
   }
+  await addDoc(collection(db, 'rooms', roomId, 'guesses'), {
+    name: cleanName,
+    selections,
+    timestamp: serverTimestamp(),
+    createdAt: Date.now(),
+    roomId,
+  });
 };
 
 // -------------------------------------------------------------
