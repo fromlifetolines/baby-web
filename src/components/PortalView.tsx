@@ -23,6 +23,7 @@ export const PortalView: React.FC<PortalViewProps> = ({
   const [name, setName] = useState('');
   const [selectedPrefix, setSelectedPrefix] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [consentToPublicDisplay, setConsentToPublicDisplay] = useState(false);
 
   const babyName = partyConfig?.babyName || '星唯';
   const subtitle = partyConfig?.subtitle || `請親朋好友精準預測${babyName}即將抓取的前 3 項志業 🎀`;
@@ -36,6 +37,14 @@ export const PortalView: React.FC<PortalViewProps> = ({
 
     if (!finalName) {
       setErrorMsg(`請輸入稱謂與姓名，讓${babyName}知道是誰在為她祝福！`);
+      return;
+    }
+    if (finalName.length > 60) {
+      setErrorMsg('稱謂與暱稱合計不可超過 60 個字元。');
+      return;
+    }
+    if (!consentToPublicDisplay) {
+      setErrorMsg('請先確認公開顯示說明，或改用暱稱。');
       return;
     }
     setErrorMsg('');
@@ -128,7 +137,8 @@ export const PortalView: React.FC<PortalViewProps> = ({
                   setName(e.target.value);
                   if (errorMsg) setErrorMsg('');
                 }}
-                placeholder="例如：舅舅 Howard、阿嬤、奶奶、堂哥..."
+                placeholder="建議使用暱稱，例如：舅舅 Howard、阿嬤、好友..."
+                maxLength={45}
                 className="w-full px-5 py-4 rounded-2xl bg-white/90 dark:bg-black/40 border-2 border-current/30 text-current placeholder-current/40 focus:outline-none focus:border-current focus:ring-4 focus:ring-current/20 transition-all font-body text-base shadow-sm"
                 autoFocus
               />
@@ -162,6 +172,16 @@ export const PortalView: React.FC<PortalViewProps> = ({
               ))}
             </div>
           </div>
+
+          <label className="flex items-start gap-2 text-xs leading-6 opacity-90 cursor-pointer">
+            <input type="checkbox" checked={consentToPublicDisplay}
+              onChange={(e) => setConsentToPublicDisplay(e.target.checked)}
+              className="mt-1.5 accent-amber-500 shrink-0" />
+            <span>
+              我了解送出投票後，填寫的稱謂／暱稱與預測內容會顯示在活動排行榜，
+              任何知道房間連結的人都可能查看。建議不要填寫真實全名或其他個人資料。
+            </span>
+          </label>
 
           {/* Submit Action */}
           <button
