@@ -1,44 +1,62 @@
-// PROPOSED ONLY — not deployed; DO NOT copy to production without reviewing
-// existing Firestore rules, testing in the Rules Playground / Emulator,
-// and enabling real Firebase Authentication + admin custom claims.
+// DRAFT FOR REVIEW ONLY — NOT DEPLOYED. DO NOT MERGE OR PUBLISH UNTESTED.
+// Currently deployed emergency rule remains: allow read, write: if false.
 //
-// Existing website has no Firebase Auth; after activating this rule,
-// the host's settings/reveal/reset operations WILL be denied until
-// authenticated with a trusted custom claim: admin == true.
+// Requires: authenticated owner recorded at:
+// rooms/{roomId}/admins/{FirebaseAuthUID} -> { active: true, role: "owner" }.
+// Admin documents MUST be created/managed only through a trusted console/backend.
+// No client is permitted to grant itself admin privileges.
 //
-// Guest reads of guesses are intentionally allowed for the EXISTING
-// public dashboard behavior; participant names are therefore public
-// to anyone who knows the room URL. Re-evaluate the privacy model.
+// Privacy warning: list permission for guesses intentionally preserves the
+// existing public leaderboard behavior (participant names become readable
+// to anyone who knows the room link). Review informed consent before deploy.
+// Guest guesses are still vulnerable to automated spam without App Check,
+// rate limiting, and/or a trusted backend.
 //
-// Anyone may create a well-shaped guess to preserve the current guest flow.
-// This is NOT anti-spam; add App Check, rate limiting, and/or a backend before
-// describing this as complete production hardening.
+// Test with Firebase Emulator and current UI before deploying.
+// Owner actions must be authenticated with Firebase Auth, never a UI-only PIN.
 
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
     function validRoomId(roomId) {
       return roomId.matches('^[a-z0-9_-]{1,64}$');
     }
 
-    function isTrustedAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
+    function ownerPath(roomId) {
+      return /databases/$(database)/documents/rooms/$(roomId)/admins/$(request.auth.uid);
+    }
+
+    function isRoomOwner(roomId) {
+      return request.auth != null
+        && validRoomId(roomId)
+        && exists(ownerPath(roomId))
+        && get(ownerPath(roomId)).data.active == true
+        && get(ownerPath(roomId)).data.role == 'owner';
+    }
+
+    match /rooms/{roomId}/admins/{uid} {
+      // Users can see only their own role. They cannot assign roles.
+      allow get: if request.auth != null
+        && validRoomId(roomId)
+        && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
     }
 
     match /rooms/{roomId}/settings/config {
       allow get: if validRoomId(roomId);
       allow list: if false;
-      allow create, update, delete: if validRoomId(roomId) && isTrustedAdmin();
+      allow create, update, delete: if isRoomOwner(roomId);
     }
 
     match /rooms/{roomId}/gameState/current {
       allow get: if validRoomId(roomId);
       allow list: if false;
-      allow create, update, delete: if validRoomId(roomId) && isTrustedAdmin();
+      allow create, update, delete: if isRoomOwner(roomId);
     }
 
     match /rooms/{roomId}/guesses/{guessId} {
-      // Current guest dashboard queries and displays all names in a room.
+      // COMPATIBILITY / PRIVACY DECISION REQUIRED: public names/guesses.
       allow get, list: if validRoomId(roomId);
 
       allow create: if validRoomId(roomId)
@@ -57,12 +75,15 @@ service cloud.firestore {
         && request.resource.data.selections[0] is string
         && request.resource.data.selections[1] is string
         && request.resource.data.selections[2] is string
+        && request.resource.data.selections[0] != request.resource.data.selections[1]
+        && request.resource.data.selections[0] != request.resource.data.selections[2]
+        && request.resource.data.selections[1] != request.resource.data.selections[2]
         && request.resource.data.timestamp == request.time
         && request.resource.data.createdAt is int;
 
-      // Deliberately prevent guests from editing or deleting votes.
-      allow update, delete: if validRoomId(roomId) && isTrustedAdmin();
+      allow update, delete: if isRoomOwner(roomId);
     }
-    // Any path not matched above is denied by default.
+
+    // No wildcard rules allowing anything else. All unmatched paths denied.
   }
 }
