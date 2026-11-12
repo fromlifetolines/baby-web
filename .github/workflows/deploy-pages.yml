@@ -1,0 +1,46 @@
+name: Deploy Baby-Web to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: baby-web-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install exact locked dependencies
+        run: npm ci
+      - name: Verify TypeScript
+        run: npx tsc --noEmit --project tsconfig.json
+      - name: Compile website
+        run: npm run build
+      - name: Install Firestore emulator testing tools
+        run: npm install --no-save --package-lock=false firebase-tools@14 @firebase/rules-unit-testing@4
+      - name: Verify candidate authorization rules (DO NOT publish)
+        run: npx firebase emulators:exec --only firestore --project demo-baby-web-security --config security/firebase-emulator.json "node security/rules.test.mjs"
+      - name: Publish validated static site only
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          keep_files: false
+          commit_message: "deploy: verified Baby-Web website at ${{ github.sha }}"
