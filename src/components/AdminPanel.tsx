@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { auth } from '../config/firebase';
+import { RoomOwnerState } from '../hooks/useRoomOwner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ZHUAZHOU_ITEMS } from '../config/itemsData';
 import { GameState, PartyConfig } from '../types';
@@ -18,11 +21,11 @@ interface AdminPanelProps {
   isOpen: boolean;
   onClose: () => void;
   gameState: GameState;
-  onTriggerReveal: (actualItems: string[]) => void;
-  onResetGame: () => void;
+  onTriggerReveal: (actualItems: string[]) => Promise<void>;
+  onResetGame: () => Promise<void>;
   onResetAllData: () => Promise<void>;
   onOpenCustomizer?: () => void;
-  initialUnlocked?: boolean;
+  owner: RoomOwnerState;
   partyConfig?: PartyConfig;
 }
 
@@ -34,7 +37,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onResetGame,
   onResetAllData,
   onOpenCustomizer,
-  initialUnlocked = false,
+  owner,
   partyConfig,
 }) => {
   const babyName = partyConfig?.babyName || '星唯';
@@ -45,8 +48,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [selectedActualIds, setSelectedActualIds] = useState<string[]>(
     gameState.actualItems?.length === 3 ? gameState.actualItems : ['item_09', 'item_16', 'item_01']
   );
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isUnlocked, setIsUnlocked] = useState(initialUnlocked);
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isResetting, setIsResetting] = useState(false);
 
@@ -62,23 +66,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }
   };
 
-  const handleUnlock = (e: React.FormEvent) => {
+  const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === '0819') {
-      setIsUnlocked(true);
-      setErrorMsg('');
-    } else {
-      setErrorMsg('密碼錯誤！請輸入正確的主持人管理密碼');
+    setErrorMsg('');
+    setIsSigningIn(true);
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+    } catch (error) {
+      console.error('Firebase sign-in failed:', error);
+      setErrorMsg('登入失敗，請檢查帳號與密碼。');
+    } finally {
+      setPassword('');
+      setIsSigningIn(false);
     }
   };
 
-  const handleTrigger = () => {
-    if (selectedActualIds.length !== 3) {
-      setErrorMsg('請勾選星唯實際抓取的 3 個志業品項！');
+  const handleTrigger = async () => {
+    if (!owner.isOwner) {
+      setErrorMsg('未取得此房間的主持人權限。');
       return;
     }
-    onTriggerReveal(selectedActualIds);
-    onClose();
+    if (selectedActualIds.length !== 3) {
+      setErrorMsg('請選擇實際抓取的三個物品。');
+      return;
+    }
+    try {
+      await onTriggerReveal(selectedActualIds);
+      onClose();
+    } catch (error) {
+      console.error('Reveal update failed:', error);
+      setErrorMsg('無法同步開獎到雲端。請稍後再試。');
+    }
   };
 
   // Native window.confirm to guarantee rendering above EVERYTHING without z-index conflicts
@@ -127,13 +145,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </button>
 
             {/* Header */}
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-6 pr-8">
               <div className="p-3.5 rounded-2xl bg-blush-100 border border-blush-200 text-pastel-coral">
                 <ShieldCheck size={26} />
               </div>
               <div>
-                <h2 className="font-heading text-2xl font-black text-brown-text">
-                  主持人抓周開獎中控台 🎀
+                <h2 className="font-heading text-lg sm:text-2xl font-black text-brown-text leading-tight">
+                  <span className="sm:hidden">主持人管理</span>
+                  <span className="hidden sm:inline">主持人抓周開獎中控台 🎀</span>
                 </h2>
                 <p className="text-xs text-brown-muted font-cute font-bold">
                   選定星唯實際抓取的 3 樣物品，一鍵引爆全場大螢幕與手機同步開獎！
@@ -141,33 +160,62 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
             </div>
 
-            {!isUnlocked ? (
+            {!owner.isOwner ? (
               <form onSubmit={handleUnlock} className="space-y-4 py-6">
                 <div className="p-5 rounded-3xl bg-blush-50 border border-blush-200 text-center">
                   <Lock className="mx-auto text-pastel-coral mb-2" size={32} />
-                  <p className="text-base font-bold text-brown-text">請輸入主持人管理密碼</p>
+                  <p className="text-base font-bold text-brown-text">請以 Firebase 管理員帳號登入</p>
                 </div>
 
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="管理員電子郵件"
+                  autoComplete="username"
+                  required
+                  className="w-full px-5 py-4 rounded-2xl bg-white border-2 border-blush-200 text-brown-text focus:outline-none focus:border-pastel-coral"
+                />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="請輸入主持人密碼"
+                  placeholder="Firebase 管理員密碼"
+                  autoComplete="current-password"
+                  required
                   className="w-full px-5 py-4 rounded-2xl bg-white border-2 border-blush-200 text-brown-text placeholder-brown-muted/50 focus:outline-none focus:border-pastel-coral text-center"
                   autoFocus
                 />
 
-                {errorMsg && <p className="text-xs text-rose-500 font-bold text-center">⚠️ {errorMsg}</p>}
+                {owner.status === 'checking' && owner.user && (
+                  <p className="text-xs text-brown-muted text-center">登入成功，正在驗證房間權限…</p>
+                )}
+                {owner.status === 'forbidden' && (
+                  <p className="text-xs text-rose-500 text-center">此帳號不是本房間授權主持人。</p>
+                )}
+                {owner.status === 'error' && (
+                  <p className="text-xs text-rose-500 text-center">目前無法驗證雲端權限；存取已安全阻擋。</p>
+                )}
+                {errorMsg && <p className="text-xs text-rose-500 font-bold text-center">{errorMsg}</p>}
 
                 <button
                   type="submit"
-                  className="w-full py-4 rounded-2xl pastel-btn-primary font-heading text-base font-black tracking-wider shadow-md cursor-pointer"
+                  disabled={isSigningIn || owner.status === 'checking'}
+                  className="w-full py-4 rounded-2xl pastel-btn-primary font-heading text-base font-black tracking-wider shadow-md cursor-pointer disabled:opacity-50"
                 >
-                  解鎖開獎控制台 (UNLOCK)
+                  {isSigningIn ? '登入中…' : '使用 Firebase 登入'}
                 </button>
+                {owner.user && (
+                  <button type="button" onClick={() => void signOut(auth)}
+                    className="w-full text-sm text-brown-muted underline">登出目前帳號</button>
+                )}
               </form>
             ) : (
               <div className="space-y-6">
+                <div className="flex justify-end">
+                  <button type="button" onClick={() => void signOut(auth)}
+                    className="text-xs text-brown-muted underline">登出管理員</button>
+                </div>
                 {/* SaaS Studio Action */}
                 {onOpenCustomizer && (
                   <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 via-rose-50 to-amber-50 border-2 border-amber-300 flex items-center justify-between shadow-sm">
@@ -258,8 +306,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <button
                       onClick={() => {
                         if (window.confirm('確定要重設全場開獎狀態回預測中嗎？')) {
-                          onResetGame();
-                          onClose();
+                          void onResetGame().then(() => onClose()).catch(() => setErrorMsg('雲端重設失敗，請稍後再試。'));
                         }
                       }}
                       className="py-3 px-4 rounded-2xl bg-cream-100 border border-blush-200 text-xs font-cute font-bold text-brown-muted hover:text-brown-text hover:border-rose-400 flex items-center justify-center gap-2 shadow-sm cursor-pointer"

@@ -12,6 +12,7 @@ import { LiquidModal } from './components/LiquidModal';
 import { LandingPageView } from './components/LandingPageView';
 import { AgencyDashboardView } from './components/AgencyDashboardView';
 import { CustomerSupportWidget } from './components/CustomerSupportWidget';
+import { useRoomOwner } from './hooks/useRoomOwner';
 import { 
   subscribeToGuesses, 
   subscribeToGameState, 
@@ -48,8 +49,9 @@ export const App: React.FC = () => {
 
   // Modals & Panels
   const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [adminPreUnlocked, setAdminPreUnlocked] = useState(false);
+  const owner = useRoomOwner(currentRoomId);
   const [isStickerModalOpen, setIsStickerModalOpen] = useState(false);
+  const [cloudSyncError, setCloudSyncError] = useState(false);
   const [alertModal, setAlertModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -104,12 +106,8 @@ export const App: React.FC = () => {
       setAppMode('guest');
     }
 
-    if (adminParam === '0819') {
-      setAdminPreUnlocked(true);
-      setIsAdminOpen(true);
-    } else if (adminParam !== null) {
-      setIsAdminOpen(true);
-    }
+    // Query params may open the login dialog, but can never bypass Firebase Auth.
+    if (adminParam !== null) setIsAdminOpen(true);
   }, []);
 
   // Helper to force purge local guest session
@@ -147,13 +145,14 @@ export const App: React.FC = () => {
 
   // Subscribe to real-time partyConfig, guesses & gameState with reactive reset handling
   useEffect(() => {
+    setCloudSyncError(false);
     const unsubConfig = subscribeToPartyConfig(currentRoomId, (updatedConfig) => {
       setPartyConfig(updatedConfig);
-    });
+    }, () => setCloudSyncError(true));
 
     const unsubGuesses = subscribeToGuesses(currentRoomId, (updatedGuesses) => {
       setGuesses(updatedGuesses);
-    });
+    }, () => setCloudSyncError(true));
 
     const unsubGameState = subscribeToGameState(currentRoomId, (updatedGameState) => {
       setGameState(updatedGameState);
@@ -176,7 +175,7 @@ export const App: React.FC = () => {
           setView(userName ? (userSelections.length === 3 ? 'dashboard' : 'matrix') : 'portal');
         }
       }
-    });
+    }, () => setCloudSyncError(true));
 
     return () => {
       if (unsubConfig) unsubConfig();
@@ -195,48 +194,58 @@ export const App: React.FC = () => {
   // Handler: Submit Selections
   const handleSubmitSelections = async (selections: string[]) => {
     try {
+      // Persist remotely before changing the success UI or local session state.
+      await submitGuessToDb(userName, selections, currentRoomId);
       setUserSelections(selections);
       localStorage.setItem(`guest_selections_${currentRoomId}`, JSON.stringify(selections));
-      await submitGuessToDb(userName, selections, currentRoomId);
       setView('dashboard');
       setAlertModal({
         isOpen: true,
-        title: '預測成功送出！ 🎀',
-        message: `太棒了！${userName}，您的 3 項抓周預測已成功寫入大典紀錄，請稍候舞台開獎！`,
+        title: '投票已送出',
+        message: '預測已成功儲存至雲端。',
         type: 'success',
       });
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error('Vote was not saved:', error);
+      setAlertModal({
+        isOpen: true,
+        title: '投票尚未送出',
+        message: '目前無法儲存到雲端，資料未送出。請稍後再試。',
+        type: 'error',
+      });
     }
   };
 
-  // Handler: Admin Trigger Reveal
-  const handleTriggerReveal = async (actualItems: string[]) => {
-    await updateGameStateInDb(currentRoomId, {
-      isRevealed: true,
-      actualItems,
-    });
+  // Defense in depth: UI checks complement (never replace) Firestore rules.
+  const requireRoomOwner = () => {
+    if (!owner.isOwner) {
+      setIsAdminOpen(true);
+      throw new Error('未經授權，請先登入此房間的主持人帳號。');
+    }
   };
 
-  // Handler: Admin Reset Game State Only
-  const handleResetGame = async () => {
-    await updateGameStateInDb(currentRoomId, {
-      isRevealed: false,
-    });
+  const handleTriggerReveal = async (actualItems: string[]): Promise<void> => {
+    requireRoomOwner();
+    await updateGameStateInDb(currentRoomId, { isRevealed: true, actualItems });
+  };
+
+  const handleResetGame = async (): Promise<void> => {
+    requireRoomOwner();
+    await updateGameStateInDb(currentRoomId, { isRevealed: false });
     if (appMode === 'guest') {
       setView(userName ? (userSelections.length === 3 ? 'dashboard' : 'matrix') : 'portal');
     }
   };
 
-  // Handler: Admin Reset All Data (Clean Slate & Global Purge)
-  const handleResetAllData = async () => {
+  const handleResetAllData = async (): Promise<void> => {
+    requireRoomOwner();
     await resetAllGuessesInDb(currentRoomId);
     setGuesses([]);
     purgeClientSession();
   };
 
-  // Handler: Save Party Customizer
-  const handleSaveConfig = async (newConfig: Partial<PartyConfig>) => {
+  const handleSaveConfig = async (newConfig: Partial<PartyConfig>): Promise<void> => {
+    requireRoomOwner();
     await updatePartyConfigInDb(currentRoomId, newConfig);
     setPartyConfig((prev) => ({ ...prev, ...newConfig }));
   };
@@ -305,6 +314,12 @@ export const App: React.FC = () => {
     <div className={`relative min-h-screen ${themeClass} overflow-x-hidden font-body select-none transition-colors duration-700`}>
       {/* Dynamic Background with Atmospheric Theme Blobs & Sparkles */}
       {!isRevealActive && <BackgroundPastel theme={themeColor} />}
+
+      {cloudSyncError && (
+        <div role="alert" className="relative z-40 bg-rose-950 text-white text-sm px-4 py-3 text-center">
+          雲端資料目前無法同步。投票及管理操作可能暫時無法使用，請勿將本機畫面視為已儲存的紀錄。
+        </div>
+      )}
 
       {/* Top Navbar */}
       <header className={`relative z-30 px-4 sm:px-8 py-3.5 flex items-center justify-between border-b ${
@@ -377,7 +392,7 @@ export const App: React.FC = () => {
 
           {/* Quick Customizer Studio Button */}
           <button
-            onClick={() => setIsCustomizerOpen(true)}
+            onClick={() => owner.isOwner ? setIsCustomizerOpen(true) : setIsAdminOpen(true)}
             className={`px-3.5 py-2 rounded-2xl ${
               isRevealActive ? 'bg-amber-400 text-amber-950 font-black' : 'bg-amber-100/90 text-amber-950 font-bold border border-amber-300'
             } text-xs font-heading flex items-center gap-1.5 shadow-sm hover:scale-105 transition-all cursor-pointer`}
@@ -471,13 +486,13 @@ export const App: React.FC = () => {
         onTriggerReveal={handleTriggerReveal}
         onResetGame={handleResetGame}
         onResetAllData={handleResetAllData}
-        onOpenCustomizer={() => setIsCustomizerOpen(true)}
-        initialUnlocked={adminPreUnlocked}
+        onOpenCustomizer={() => { if (owner.isOwner) setIsCustomizerOpen(true); }}
+        owner={owner}
         partyConfig={partyConfig}
       />
 
       <PartyCustomizerModal
-        isOpen={isCustomizerOpen}
+        isOpen={isCustomizerOpen && owner.isOwner}
         onClose={() => setIsCustomizerOpen(false)}
         config={partyConfig}
         onSaveConfig={handleSaveConfig}

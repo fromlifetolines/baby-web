@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PartyConfig, ThemeStyle } from '../types';
+import { PartyConfig, ThemeStyle, CustomZhuazhouItem } from '../types';
 import { ZHUAZHOU_ITEMS } from '../config/itemsData';
 import { 
   X, 

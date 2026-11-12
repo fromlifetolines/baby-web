@@ -1,0 +1,59 @@
+name: Baby-Web Security CI
+
+on:
+  push:
+    branches:
+      - security/incident-20261112-firebase-hardening
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install locked project dependencies
+        run: npm ci
+      - name: TypeScript validation
+        run: npx tsc --noEmit --project tsconfig.json
+      - name: Vite production build
+        run: npm run build
+      - name: Install local-only emulator test tooling
+        run: npm install --no-save --package-lock=false firebase-tools@14 @firebase/rules-unit-testing@4
+      - name: Verify Firestore Security Rules on emulator
+        run: npx firebase emulators:exec --only firestore --project demo-baby-web-security --config security/firebase-emulator.json "node security/rules.test.mjs"
+      - name: Reject legacy browser-side admin bypasses
+        shell: bash
+        run: |
+          if grep -nE "password ===|vip888|adminPreUnlocked|babyweb_agency_auth|isUnlocked" src/App.tsx src/components/AdminPanel.tsx src/components/AgencyDashboardView.tsx; then
+            echo "Forbidden legacy authorization found" >&2
+            exit 1
+          fi
+
+      - name: Install Chromium smoke test tooling
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Smoke-test secure admin UI (mobile and desktop)
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 &
+          curl --retry 30 --retry-connrefused --retry-delay 1 -fsS http://127.0.0.1:4173/baby-web/ > /dev/null
+          node security/ui-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: baby-web-admin-login-screenshots
+          path: security/screenshots/
+          if-no-files-found: ignore

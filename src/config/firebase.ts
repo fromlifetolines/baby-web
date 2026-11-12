@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
 import { 
   getFirestore, 
   collection, 
@@ -26,6 +27,7 @@ const firebaseConfig = {
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const db = getFirestore(app);
+export const auth = getAuth(app);
 
 // Default Party Config Template
 export const DEFAULT_PARTY_CONFIG: PartyConfig = {
@@ -109,7 +111,8 @@ export const getStoredGameState = (roomId: string = 'xingwei'): GameState => {
 // -------------------------------------------------------------
 export const subscribeToPartyConfig = (
   roomId: string = 'xingwei',
-  callback: (config: PartyConfig) => void
+  callback: (config: PartyConfig) => void,
+  onError?: (error: Error) => void
 ) => {
   let isUnmounted = false;
   const broadcast = getBroadcast(roomId);
@@ -129,6 +132,7 @@ export const subscribeToPartyConfig = (
       }
     }, (err) => {
       console.warn("PartyConfig onSnapshot fallback to local:", err);
+      onError?.(err);
       callback(getStoredConfig(roomId));
     });
 
@@ -165,11 +169,8 @@ export const updatePartyConfigInDb = async (
     updatedAt: Date.now(),
   };
 
-  try {
-    await setDoc(doc(db, 'rooms', roomId, 'settings', 'config'), merged, { merge: true });
-  } catch (e) {
-    console.error("Firestore config update error:", e);
-  }
+  // Fail closed: browser-only local changes must never masquerade as cloud writes.
+  await setDoc(doc(db, 'rooms', roomId, 'settings', 'config'), merged, { merge: true });
 
   localStorage.setItem(getConfigKey(roomId), JSON.stringify(merged));
   const broadcast = getBroadcast(roomId);
@@ -182,36 +183,22 @@ export const updatePartyConfigInDb = async (
 // API: Submit Guess to Firestore (Room Isolated)
 // -------------------------------------------------------------
 export const submitGuessToDb = async (
-  name: string, 
+  name: string,
   selections: string[],
   roomId: string = 'xingwei'
 ): Promise<void> => {
-  try {
-    // Write into subcollection: rooms/{roomId}/guesses
-    await addDoc(collection(db, 'rooms', roomId, 'guesses'), {
-      name,
-      selections,
-      timestamp: serverTimestamp(),
-      createdAt: Date.now(),
-      roomId,
-    });
-  } catch (err) {
-    console.error("Firestore write error, falling back locally:", err);
-    const newGuess: GuessRecord = {
-      id: 'local_' + Date.now(),
-      name,
-      selections,
-      timestamp: Date.now(),
-      roomId,
-    };
-    const current = getStoredGuesses(roomId);
-    const updated = [newGuess, ...current];
-    localStorage.setItem(getGuessesKey(roomId), JSON.stringify(updated));
-    const broadcast = getBroadcast(roomId);
-    if (broadcast) {
-      broadcast.postMessage({ type: 'NEW_GUESS', payload: newGuess });
-    }
+  const cleanName = name.trim();
+  if (!cleanName || cleanName.length > 60 || selections.length !== 3 ||
+      new Set(selections).size !== 3 || selections.some((item) => typeof item !== 'string')) {
+    throw new Error('請輸入姓名並選擇三個不同的物品。');
   }
+  await addDoc(collection(db, 'rooms', roomId, 'guesses'), {
+    name: cleanName,
+    selections,
+    timestamp: serverTimestamp(),
+    createdAt: Date.now(),
+    roomId,
+  });
 };
 
 // -------------------------------------------------------------
@@ -219,7 +206,8 @@ export const submitGuessToDb = async (
 // -------------------------------------------------------------
 export const subscribeToGuesses = (
   roomId: string = 'xingwei',
-  callback: (guesses: GuessRecord[]) => void
+  callback: (guesses: GuessRecord[]) => void,
+  onError?: (error: Error) => void
 ) => {
   let isUnmounted = false;
   const broadcast = getBroadcast(roomId);
@@ -243,6 +231,7 @@ export const subscribeToGuesses = (
       localStorage.setItem(getGuessesKey(roomId), JSON.stringify(list));
     }, (err) => {
       console.warn("Firestore guesses onSnapshot fallback:", err);
+      onError?.(err);
       callback(getStoredGuesses(roomId));
     });
 
@@ -272,7 +261,8 @@ export const subscribeToGuesses = (
 // -------------------------------------------------------------
 export const subscribeToGameState = (
   roomId: string = 'xingwei',
-  callback: (state: GameState) => void
+  callback: (state: GameState) => void,
+  onError?: (error: Error) => void
 ) => {
   let isUnmounted = false;
   const broadcast = getBroadcast(roomId);
@@ -291,6 +281,7 @@ export const subscribeToGameState = (
       }
     }, (err) => {
       console.warn("GameState onSnapshot fallback:", err);
+      onError?.(err);
       callback(getStoredGameState(roomId));
     });
 
@@ -330,11 +321,10 @@ export const updateGameStateInDb = async (
     revealedAt: state.isRevealed ? Date.now() : undefined,
   };
 
-  try {
-    await setDoc(doc(db, 'rooms', roomId, 'gameState', 'current'), merged, { merge: true });
-  } catch (e) {
-    console.error("Firestore gameState update error:", e);
-  }
+  // Firestore does not accept an undefined field value.
+  const { revealedAt, ...rest } = merged;
+  const payload = revealedAt === undefined ? rest : { ...rest, revealedAt };
+  await setDoc(doc(db, 'rooms', roomId, 'gameState', 'current'), payload, { merge: true });
 
   localStorage.setItem(getGameStateKey(roomId), JSON.stringify(merged));
   const broadcast = getBroadcast(roomId);
@@ -350,22 +340,24 @@ export const resetAllGuessesInDb = async (roomId: string = 'xingwei'): Promise<v
   const resetTime = Date.now();
   try {
     const snap = await getDocs(collection(db, 'rooms', roomId, 'guesses'));
-    if (!snap.empty) {
-      const batch = writeBatch(db);
-      snap.forEach((document) => {
-        batch.delete(document.ref);
-      });
-      await batch.commit();
+    // Do not start a partial destructive reset if the batch would exceed limits.
+    // A dedicated trusted-backend bulk delete is needed for larger rooms.
+    if (snap.size > 400) {
+      throw new Error('投票超過 400 筆，已停止清空以避免部分刪除。請改用經驗證的後端批次流程。');
     }
-
-    await setDoc(doc(db, 'rooms', roomId, 'gameState', 'current'), {
+    // Single atomic batch: deletion and reset state succeed or fail together.
+    const batch = writeBatch(db);
+    snap.forEach((document) => batch.delete(document.ref));
+    batch.set(doc(db, 'rooms', roomId, 'gameState', 'current'), {
       isRevealed: false,
       actualItems: ['item_09', 'item_16', 'item_01'],
       lastResetTimestamp: resetTime,
       roomId,
-    });
+    }, { merge: true });
+    await batch.commit();
   } catch (e) {
     console.error("Firestore batch delete error:", e);
+    throw e;
   }
 
   // Purge all guest session and local keys for this room
