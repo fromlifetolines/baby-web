@@ -15,7 +15,7 @@ try {
     await page.locator('button[title="主持人後台 (Admin Panel)"]').click();
     await page.locator('input[type="email"]').waitFor({ state: 'visible', timeout: 10000 });
     await page.locator('input[type="password"]').waitFor({ state: 'visible' });
-    const label = await page.locator('form').first().innerText();
+    const label = await page.locator('input[type="email"]').locator('xpath=ancestor::form').innerText();
     assert.ok(label.includes('Firebase'));
     assert.ok(!label.includes('0819'), 'legacy PIN appeared in login form');
     assert.ok(!label.includes('vip888'), 'legacy agency passcode appeared in login form');
