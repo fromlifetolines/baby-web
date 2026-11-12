@@ -1,0 +1,43 @@
+name: Baby-Web Security CI
+
+on:
+  push:
+    branches:
+      - security/incident-20261112-firebase-hardening
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install locked project dependencies
+        run: npm ci
+      - name: TypeScript validation
+        run: npx tsc --noEmit --project tsconfig.json
+      - name: Vite production build
+        run: npm run build
+      - name: Install local-only emulator test tooling
+        run: npm install --no-save --package-lock=false firebase-tools@14 @firebase/rules-unit-testing@4
+      - name: Verify Firestore Security Rules on emulator
+        run: npx firebase emulators:exec --only firestore --project demo-baby-web-security --config security/firebase-emulator.json "node security/rules.test.mjs"
+      - name: Reject legacy browser-side admin bypasses
+        shell: bash
+        run: |
+          if grep -nE "password ===|vip888|adminPreUnlocked|babyweb_agency_auth|isUnlocked" src/App.tsx src/components/AdminPanel.tsx src/components/AgencyDashboardView.tsx; then
+            echo "Forbidden legacy authorization found" >&2
+            exit 1
+          fi
